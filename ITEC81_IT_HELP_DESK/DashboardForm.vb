@@ -86,14 +86,7 @@ Public Class DashboardForm
         ui_pnlSidebar.Width = 220
         ui_pnlSidebar.BackColor = Color.FromArgb(30, 30, 40)
 
-        Dim lblLogo As New Label
-        lblLogo.Text = "IT HELP DESK"
-        lblLogo.ForeColor = Color.White
-        lblLogo.Font = New Font("Segoe UI", 16, FontStyle.Bold)
-        lblLogo.Dock = DockStyle.Top
-        lblLogo.Height = 80
-        lblLogo.TextAlign = ContentAlignment.MiddleCenter
-        lblLogo.Parent = ui_pnlSidebar
+        ' (Logo removed from sidebar)
 
         ' Nav Buttons
         CreateNavBtn(ui_btnNavLogout, "Log Out", DockStyle.Bottom)
@@ -109,6 +102,18 @@ Public Class DashboardForm
         ui_pnlHeader.Height = 60
         ui_pnlHeader.BackColor = Color.White
         ui_pnlHeader.BringToFront()
+
+        ' Title System (Top Right)
+        Dim lblSysTitle As New Label
+        lblSysTitle.Text = "IT HELP DESK"
+        lblSysTitle.Font = New Font("Segoe UI", 20, FontStyle.Bold)
+        lblSysTitle.ForeColor = Color.DodgerBlue
+        lblSysTitle.AutoSize = False
+        lblSysTitle.Size = New Size(300, 60)
+        lblSysTitle.TextAlign = ContentAlignment.MiddleRight
+        lblSysTitle.Padding = New Padding(0, 0, 20, 0)
+        lblSysTitle.Dock = DockStyle.Right ' Docks to the right of the Header
+        lblSysTitle.Parent = ui_pnlHeader
 
         Dim lblUser As New Label
         lblUser.Text = "User: " & Session.CurrentUserName & " (" & Session.CurrentUserRole & ")"
@@ -363,7 +368,7 @@ Public Class DashboardForm
                 lblFoot.Font = New Font("Segoe UI", 9, FontStyle.Regular)
 
                 If status = "Resolved" Then
-                    lblFoot.Text = "Status: Resolved  |  Admin Remarks: " & row("AdminRemarks").ToString()
+                    lblFoot.Text = "Status: Resolved  | Admin Remarks: " & row("AdminRemarks").ToString()
                     lblFoot.ForeColor = Color.SeaGreen
                 Else
                     lblFoot.Text = "Status: Pending (Waiting for support)"
