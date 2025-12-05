@@ -76,9 +76,9 @@ Public Class DashboardForm
 
     ' --- 1. LAYOUT SETUP ---
     Private Sub SetupLayout()
-        Me.Size = New Size(1280, 720) ' Fixed size 1280x720
+        Me.Size = New Size(1280, 720)
         Me.Text = "IT Help Desk System"
-        Me.BackColor = Color.FromArgb(240, 242, 245) ' Soft gray background
+        Me.BackColor = Color.FromArgb(240, 242, 245)
         Me.StartPosition = FormStartPosition.CenterScreen
 
         ' -- SIDEBAR --
@@ -87,26 +87,12 @@ Public Class DashboardForm
         pnlSidebar.Width = 240
         pnlSidebar.BackColor = Color.FromArgb(30, 35, 50)
 
-        ' Nav Buttons (Added FIRST so they are pushed down by the logo later)
+        ' Nav Buttons
         CreateNavBtn(btnNavLogout, "Log Out", DockStyle.Bottom)
-
         If Session.CurrentUserRole = "Manager" Then CreateNavBtn(btnNavUsers, "Manage Users", DockStyle.Top)
-
         Dim tListTitle As String = If(Session.CurrentUserRole = "Student", "My Concerns", "Ticket List")
         CreateNavBtn(btnNavTickets, tListTitle, DockStyle.Top)
         CreateNavBtn(btnNavDashboard, "Dashboard", DockStyle.Top)
-
-        ' Redesigned Logo Label (Added LAST to ensure it stays at the TOP LEFT)
-        Dim lblLogo As New Label
-        lblLogo.Text = "IT HELP DESK"
-        lblLogo.ForeColor = Color.White
-        lblLogo.Font = New Font("Segoe UI", 14, FontStyle.Bold)
-        lblLogo.Dock = DockStyle.Top
-        lblLogo.Height = 80
-        lblLogo.TextAlign = ContentAlignment.MiddleLeft
-        lblLogo.Padding = New Padding(20, 0, 0, 0) ' Push text to the right
-        lblLogo.Parent = pnlSidebar
-        lblLogo.BringToFront() ' Force to top
 
         ' -- HEADER --
         pnlHeader.Parent = Me
@@ -115,7 +101,26 @@ Public Class DashboardForm
         pnlHeader.BackColor = Color.White
         pnlHeader.BringToFront()
 
-        Dim lblUser As New Label With {.Text = "Welcome, " & Session.CurrentUserName, .Font = New Font("Segoe UI", 11, FontStyle.Bold), .ForeColor = Color.DimGray, .AutoSize = True, .Location = New Point(25, 20), .Parent = pnlHeader}
+        ' --- CHANGED: TITLE MOVED HERE (Top Left of Window) ---
+        Dim lblLogo As New Label
+        lblLogo.Text = "IT HELP DESK"
+        lblLogo.ForeColor = Color.DodgerBlue ' Changed to Blue for white background
+        lblLogo.Font = New Font("Segoe UI", 14, FontStyle.Bold)
+        lblLogo.AutoSize = True
+        lblLogo.Location = New Point(20, 15) ' Positioned Top-Left
+        lblLogo.Parent = pnlHeader
+        lblLogo.BringToFront()
+
+        ' --- CHANGED: WELCOME MESSAGE MOVED TO RIGHT ---
+        Dim lblUser As New Label
+        lblUser.Text = "Welcome, " & Session.CurrentUserName
+        lblUser.Font = New Font("Segoe UI", 11, FontStyle.Bold)
+        lblUser.ForeColor = Color.DimGray
+        lblUser.AutoSize = True
+        ' Move to the right side of the header
+        lblUser.Location = New Point(900, 20)
+        lblUser.Anchor = AnchorStyles.Top Or AnchorStyles.Right
+        lblUser.Parent = pnlHeader
 
         ' -- CONTENT AREA --
         pnlContent.Parent = Me
