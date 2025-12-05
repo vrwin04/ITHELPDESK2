@@ -76,7 +76,7 @@ Public Class DashboardForm
 
     ' --- 1. LAYOUT SETUP ---
     Private Sub SetupLayout()
-        Me.Size = New Size(1280, 720) ' <--- UPDATED SIZE TO 1280x720
+        Me.Size = New Size(1280, 720) ' Fixed size 1280x720
         Me.Text = "IT Help Desk System"
         Me.BackColor = Color.FromArgb(240, 242, 245) ' Soft gray background
         Me.StartPosition = FormStartPosition.CenterScreen
@@ -430,6 +430,7 @@ Public Class DashboardForm
 
     Private Sub LoadAnalyticsData()
         CategoryCounts.Clear()
+        ' Only add categories that actually exist in the rows (Count > 0)
         For Each row As DataRow In dtTickets.Rows
             Dim cat = row("Category").ToString()
             If CategoryCounts.ContainsKey(cat) Then CategoryCounts(cat) += 1 Else CategoryCounts.Add(cat, 1)
@@ -464,7 +465,9 @@ Public Class DashboardForm
         ' 2. Calculate Metrics
         Dim w As Integer = picGraph.Width
         Dim h As Integer = picGraph.Height
-        Dim paddingBottom As Integer = 40
+
+        ' INCREASED PADDING TO SHOW LABELS
+        Dim paddingBottom As Integer = 60
         Dim paddingTop As Integer = 40
         Dim graphHeight As Integer = h - paddingBottom - paddingTop
 
@@ -518,7 +521,9 @@ Public Class DashboardForm
             If catStr.Length > 10 Then catStr = catStr.Substring(0, 8) & ".."
             Dim fontCat As New Font("Segoe UI", 9, FontStyle.Regular)
             Dim szCat = g.MeasureString(catStr, fontCat)
-            g.DrawString(catStr, fontCat, Brushes.Gray, CSng(x + (barWidth - szCat.Width) / 2), CSng(h - paddingBottom + 5))
+
+            ' Draw Label Darker and Higher
+            g.DrawString(catStr, fontCat, Brushes.DimGray, CSng(x + (barWidth - szCat.Width) / 2), CSng(h - paddingBottom + 5))
 
             idx += 1
         Next
