@@ -21,7 +21,7 @@ Public Class DashboardForm
     Private WithEvents pnlSidebar As New Panel
     Private WithEvents pnlContent As New Panel
 
-    ' Navigation
+    ' Navigation Buttons
     Private WithEvents btnNavDashboard As New Button
     Private WithEvents btnNavTickets As New Button
     Private WithEvents btnNavUsers As New Button
@@ -239,7 +239,7 @@ Public Class DashboardForm
         pnl.Location = New Point(x, 10)
         pnl.Size = New Size(240, 120)
         pnl.BackColor = Color.White
-        ' No border for cleaner look, or we can paint one
+        ' No border for cleaner look
 
         ' Color Strip on Left
         Dim strip As New Panel
@@ -443,7 +443,7 @@ Public Class DashboardForm
         picGraph.Invalidate()
     End Sub
 
-    ' --- REDESIGNED BAR CHART (No Border, Floating Style) ---
+    ' --- REDESIGNED BAR CHART (No Border, Floating Style, FIXED TYPES) ---
     Private Sub picGraph_Paint(sender As Object, e As PaintEventArgs) Handles picGraph.Paint
         Dim g = e.Graphics
         g.SmoothingMode = SmoothingMode.AntiAlias
@@ -453,7 +453,7 @@ Public Class DashboardForm
         g.Clear(Color.White)
 
         If CategoryCounts.Count = 0 Then
-            Dim msg = "No data available"
+            Dim msg = "No Data Available"
             Dim sf As New StringFormat With {.Alignment = StringAlignment.Center, .LineAlignment = StringAlignment.Center}
             g.DrawString(msg, New Font("Segoe UI", 12), Brushes.Gray, picGraph.ClientRectangle, sf)
             Return
@@ -505,20 +505,20 @@ Public Class DashboardForm
                 End Using
             End If
 
-            ' Value Label (Floating Top)
+            ' Value Label (Floating Top) - WITH CSNG FIX
             If AnimationProgress > 0.5 Then
                 Dim valStr = val.ToString()
                 Dim fontVal As New Font("Segoe UI", 10, FontStyle.Bold)
                 Dim szVal = g.MeasureString(valStr, fontVal)
-                g.DrawString(valStr, fontVal, Brushes.Black, x + (barWidth - szVal.Width) / 2, y - 20)
+                g.DrawString(valStr, fontVal, Brushes.Black, CSng(x + (barWidth - szVal.Width) / 2), CSng(y - 20))
             End If
 
-            ' Category Label (Bottom)
+            ' Category Label (Bottom) - WITH CSNG FIX
             Dim catStr = kvp.Key
             If catStr.Length > 10 Then catStr = catStr.Substring(0, 8) & ".."
             Dim fontCat As New Font("Segoe UI", 9, FontStyle.Regular)
             Dim szCat = g.MeasureString(catStr, fontCat)
-            g.DrawString(catStr, fontCat, Brushes.Gray, x + (barWidth - szCat.Width) / 2, h - paddingBottom + 5)
+            g.DrawString(catStr, fontCat, Brushes.Gray, CSng(x + (barWidth - szCat.Width) / 2), CSng(h - paddingBottom + 5))
 
             idx += 1
         Next
