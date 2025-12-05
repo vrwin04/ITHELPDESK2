@@ -10,6 +10,7 @@ Public Class UserManagementForm
     Private WithEvents dgvUsers As New DataGridView
     Private WithEvents btnDelete As New Button
     Private WithEvents btnClose As New Button
+    Private WithEvents btnEdit As New Button
 
     Private ReadOnly Property ConnString As String
         Get
@@ -43,6 +44,14 @@ Public Class UserManagementForm
         btnDelete.BackColor = Color.IndianRed
         btnDelete.ForeColor = Color.White
         btnDelete.FlatStyle = FlatStyle.Flat
+
+        btnEdit.Parent = Me
+        btnEdit.Text = "Edit Role"
+        btnEdit.Location = New Point(170, 360) ' Placed next to Delete button
+        btnEdit.Size = New Size(150, 40)
+        btnEdit.BackColor = Color.DodgerBlue
+        btnEdit.ForeColor = Color.White
+        btnEdit.FlatStyle = FlatStyle.Flat
 
         ' Close Button
         btnClose.Parent = Me
