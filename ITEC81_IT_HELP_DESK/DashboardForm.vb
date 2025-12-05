@@ -12,6 +12,11 @@ Public Class DashboardForm
     Private dtTickets As New DataTable
     Private CategoryCounts As New Dictionary(Of String, Integer)
 
+    ' --- ANIMATION & COLORS ---
+    Private WithEvents AnimationTimer As New Timer With {.Interval = 15} ' Runs every 15ms
+    Private AnimationProgress As Single = 0.0F
+    Private CategoryBrushes As Dictionary(Of String, Brush)
+
     ' --- UI CONTROLS ---
     Private WithEvents ui_pnlHeader As New Panel
     Private WithEvents ui_pnlSidebar As New Panel
@@ -59,6 +64,10 @@ Public Class DashboardForm
     Private Sub DashboardForm_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         Me.Controls.Clear()
         Me.DoubleBuffered = True
+
+        ' Initialize Colors
+        InitializeColors()
+
         SetupLayout()
 
         ' --- ROLE BASED STARTUP ---
@@ -73,6 +82,15 @@ Public Class DashboardForm
         End If
     End Sub
 
+    Private Sub InitializeColors()
+        CategoryBrushes = New Dictionary(Of String, Brush)
+        ' Define specific colors for known categories
+        CategoryBrushes.Add("Hardware", Brushes.Tomato)
+        CategoryBrushes.Add("Software", Brushes.CornflowerBlue)
+        CategoryBrushes.Add("Network", Brushes.MediumSeaGreen)
+        CategoryBrushes.Add("Account", Brushes.Orange)
+    End Sub
+
     ' --- 1. LAYOUT SETUP ---
     Private Sub SetupLayout()
         Me.Size = New Size(1200, 750)
@@ -85,8 +103,6 @@ Public Class DashboardForm
         ui_pnlSidebar.Dock = DockStyle.Left
         ui_pnlSidebar.Width = 220
         ui_pnlSidebar.BackColor = Color.FromArgb(30, 30, 40)
-
-        ' (Logo removed from sidebar)
 
         ' Nav Buttons
         CreateNavBtn(ui_btnNavLogout, "Log Out", DockStyle.Bottom)
@@ -444,7 +460,7 @@ Public Class DashboardForm
         Me.Close()
     End Sub
 
-    ' --- HELPERS ---
+    ' --- ANIMATION LOGIC ---
     Private Sub UpdateStats()
         If dtTickets Is Nothing Then Return
         Dim total = dtTickets.Rows.Count
@@ -464,9 +480,22 @@ Public Class DashboardForm
         ui_lblTileTotal.Text = total.ToString()
         ui_lblTilePending.Text = pending.ToString()
         ui_lblTileResolved.Text = resolved.ToString()
-        ui_picGraph.Invalidate()
+
+        ' Trigger Animation
+        AnimationProgress = 0
+        AnimationTimer.Start()
     End Sub
 
+    Private Sub AnimationTimer_Tick(sender As Object, e As EventArgs) Handles AnimationTimer.Tick
+        AnimationProgress += 0.05F ' Increase progress
+        If AnimationProgress >= 1.0F Then
+            AnimationProgress = 1.0F
+            AnimationTimer.Stop()
+        End If
+        ui_picGraph.Invalidate() ' Redraw graph
+    End Sub
+
+    ' --- PAINT WITH COLORS & ANIMATION ---
     Private Sub ui_picGraph_Paint(sender As Object, e As PaintEventArgs) Handles ui_picGraph.Paint
         If CategoryCounts.Count = 0 Then Return
         Dim g = e.Graphics
@@ -481,11 +510,30 @@ Public Class DashboardForm
 
         Dim i = 0
         For Each kvp In CategoryCounts
-            Dim barH = (kvp.Value / maxVal) * (h - 50)
-            Dim rect As New Rectangle(i * colW + 20, h - barH - 30, colW - 40, barH)
-            g.FillRectangle(Brushes.SteelBlue, rect)
-            g.DrawString(kvp.Value.ToString(), Me.Font, Brushes.Black, rect.X + 10, rect.Y - 20)
-            g.DrawString(kvp.Key, Me.Font, Brushes.Black, rect.X, h - 20)
+            ' 1. Calculate Full Height
+            Dim targetHeight = (kvp.Value / maxVal) * (h - 50)
+
+            ' 2. Apply Animation Factor
+            Dim currentHeight = targetHeight * AnimationProgress
+
+            ' 3. Pick Color
+            Dim barBrush As Brush
+            If CategoryBrushes.ContainsKey(kvp.Key) Then
+                barBrush = CategoryBrushes(kvp.Key)
+            Else
+                barBrush = Brushes.Gray ' Fallback color
+            End If
+
+            ' 4. Draw
+            Dim rect As New Rectangle(i * colW + 20, h - currentHeight - 30, colW - 40, currentHeight)
+            g.FillRectangle(barBrush, rect)
+
+            ' Draw labels only when bar is visible enough
+            If AnimationProgress > 0.5 Then
+                g.DrawString(kvp.Value.ToString(), Me.Font, Brushes.Black, rect.X + 10, rect.Y - 20)
+                g.DrawString(kvp.Key, Me.Font, Brushes.Black, rect.X, h - 20)
+            End If
+
             i += 1
         Next
     End Sub
