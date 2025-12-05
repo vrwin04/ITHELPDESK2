@@ -1,4 +1,5 @@
-﻿Imports System.Data.OleDb
+﻿Imports System.Collections.Specialized.BitVector32
+Imports System.Data.OleDb
 Imports System.Drawing
 Imports System.Windows.Forms
 
@@ -101,6 +102,27 @@ Public Class UserManagementForm
                 End Try
             End Using
         End If
+    End Sub
+
+    Private Sub btnEdit_Click(sender As Object, e As EventArgs)
+        If dgvUsers.SelectedRows.Count = 0 Then Return
+
+        Dim userId As Integer = Convert.ToInt32(dgvUsers.CurrentRow.Cells("UserID").Value)
+        Dim currentRole As String = dgvUsers.CurrentRow.Cells("Role").Value.ToString()
+
+        ' Simple toggle for now, or create a small dialog to select role
+        Dim newRole As String = If(currentRole = "Student", "Admin", "Student")
+
+        Using conn As New OleDbConnection(Session.ConnectionString)
+            conn.Open()
+            Dim cmd As New OleDbCommand("UPDATE tblUsers SET Role = ? WHERE UserID = ?", conn)
+            cmd.Parameters.AddWithValue("?", newRole)
+            cmd.Parameters.AddWithValue("?", userId)
+            cmd.ExecuteNonQuery()
+        End Using
+
+        MessageBox.Show($"User role updated to {newRole}")
+        LoadUsers()
     End Sub
 
     Private Sub btnClose_Click(sender As Object, e As EventArgs) Handles btnClose.Click
