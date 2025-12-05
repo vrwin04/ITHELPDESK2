@@ -87,7 +87,16 @@ Public Class DashboardForm
         pnlSidebar.Width = 240
         pnlSidebar.BackColor = Color.FromArgb(30, 35, 50)
 
-        ' Redesigned Logo Label (Top Left)
+        ' Nav Buttons (Added FIRST so they are pushed down by the logo later)
+        CreateNavBtn(btnNavLogout, "Log Out", DockStyle.Bottom)
+
+        If Session.CurrentUserRole = "Manager" Then CreateNavBtn(btnNavUsers, "Manage Users", DockStyle.Top)
+
+        Dim tListTitle As String = If(Session.CurrentUserRole = "Student", "My Concerns", "Ticket List")
+        CreateNavBtn(btnNavTickets, tListTitle, DockStyle.Top)
+        CreateNavBtn(btnNavDashboard, "Dashboard", DockStyle.Top)
+
+        ' Redesigned Logo Label (Added LAST to ensure it stays at the TOP LEFT)
         Dim lblLogo As New Label
         lblLogo.Text = "IT HELP DESK"
         lblLogo.ForeColor = Color.White
@@ -97,15 +106,7 @@ Public Class DashboardForm
         lblLogo.TextAlign = ContentAlignment.MiddleLeft
         lblLogo.Padding = New Padding(20, 0, 0, 0) ' Push text to the right
         lblLogo.Parent = pnlSidebar
-
-        ' Nav Buttons
-        CreateNavBtn(btnNavLogout, "Log Out", DockStyle.Bottom)
-
-        If Session.CurrentUserRole = "Manager" Then CreateNavBtn(btnNavUsers, "Manage Users", DockStyle.Top)
-
-        Dim tListTitle As String = If(Session.CurrentUserRole = "Student", "My Concerns", "Ticket List")
-        CreateNavBtn(btnNavTickets, tListTitle, DockStyle.Top)
-        CreateNavBtn(btnNavDashboard, "Dashboard", DockStyle.Top)
+        lblLogo.BringToFront() ' Force to top
 
         ' -- HEADER --
         pnlHeader.Parent = Me
@@ -506,13 +507,11 @@ Public Class DashboardForm
                 End Using
             End If
 
-            ' Value Label (Floating Top) - WITH CSNG FIX
-            If AnimationProgress > 0.5 Then
-                Dim valStr = val.ToString()
-                Dim fontVal As New Font("Segoe UI", 10, FontStyle.Bold)
-                Dim szVal = g.MeasureString(valStr, fontVal)
-                g.DrawString(valStr, fontVal, Brushes.Black, CSng(x + (barWidth - szVal.Width) / 2), CSng(y - 20))
-            End If
+            ' Value Label (Floating Top) - VISIBLE ALWAYS
+            Dim valStr = val.ToString()
+            Dim fontVal As New Font("Segoe UI", 10, FontStyle.Bold)
+            Dim szVal = g.MeasureString(valStr, fontVal)
+            g.DrawString(valStr, fontVal, Brushes.Black, CSng(x + (barWidth - szVal.Width) / 2), CSng(y - 20))
 
             ' Category Label (Bottom) - WITH CSNG FIX
             Dim catStr = kvp.Key
