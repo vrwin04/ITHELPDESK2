@@ -76,7 +76,7 @@ Public Class DashboardForm
 
     ' --- 1. LAYOUT SETUP ---
     Private Sub SetupLayout()
-        Me.Size = New Size(1200, 750)
+        Me.Size = New Size(1280, 720) ' <--- UPDATED SIZE TO 1280x720
         Me.Text = "IT Help Desk System"
         Me.BackColor = Color.FromArgb(240, 242, 245) ' Soft gray background
         Me.StartPosition = FormStartPosition.CenterScreen
