@@ -113,7 +113,7 @@ Public Class UserManagementForm
         End If
     End Sub
 
-    Private Sub btnEdit_Click(sender As Object, e As EventArgs)
+    Private Sub btnEdit_Click(sender As Object, e As EventArgs) Handles btnEdit.Click
         If dgvUsers.SelectedRows.Count = 0 Then Return
 
         Dim userId As Integer = Convert.ToInt32(dgvUsers.CurrentRow.Cells("UserID").Value)
