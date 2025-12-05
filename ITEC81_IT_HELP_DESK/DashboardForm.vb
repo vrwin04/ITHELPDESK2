@@ -12,46 +12,44 @@ Public Class DashboardForm
     Private dtTickets As New DataTable
     Private CategoryCounts As New Dictionary(Of String, Integer)
 
-    ' --- ANIMATION & COLORS ---
-    Private WithEvents AnimationTimer As New Timer With {.Interval = 15} ' Runs every 15ms
+    ' --- ANIMATION ---
+    Private WithEvents AnimationTimer As New Timer With {.Interval = 15}
     Private AnimationProgress As Single = 0.0F
-    Private CategoryBrushes As Dictionary(Of String, Brush)
 
     ' --- UI CONTROLS ---
-    Private WithEvents ui_pnlHeader As New Panel
-    Private WithEvents ui_pnlSidebar As New Panel
-    Private WithEvents ui_pnlContent As New Panel
+    Private WithEvents pnlHeader As New Panel
+    Private WithEvents pnlSidebar As New Panel
+    Private WithEvents pnlContent As New Panel
 
-    ' Navigation Buttons
-    Private WithEvents ui_btnNavDashboard As New Button
-    Private WithEvents ui_btnNavTickets As New Button
-    Private WithEvents ui_btnNavUsers As New Button
-    Private WithEvents ui_btnNavLogout As New Button
+    ' Navigation
+    Private WithEvents btnNavDashboard As New Button
+    Private WithEvents btnNavTickets As New Button
+    Private WithEvents btnNavUsers As New Button
+    Private WithEvents btnNavLogout As New Button
 
-    ' Dashboard View (Admin Only)
-    Private ui_pnlViewDashboard As New Panel
-    Private WithEvents ui_picGraph As New PictureBox
-    Private ui_lblTileTotal As New Label
-    Private ui_lblTilePending As New Label
-    Private ui_lblTileResolved As New Label
+    ' Dashboard View
+    Private pnlViewDashboard As New Panel
+    Private WithEvents picGraph As New PictureBox
+    ' Tile Panels
+    Private pnlTileTotal As New Panel
+    Private pnlTilePending As New Panel
+    Private pnlTileResolved As New Panel
+    ' Tile Labels
+    Private lblTileTotalVal As New Label
+    Private lblTilePendingVal As New Label
+    Private lblTileResolvedVal As New Label
 
-    ' Tickets View (Container)
-    Private ui_pnlViewTickets As New Panel
-
-    ' Admin Grid View
-    Private WithEvents ui_dgvTickets As New DataGridView
-
-    ' Student Text View (NEW)
-    Private WithEvents ui_flpHistory As New FlowLayoutPanel
-
-    ' Controls
-    Private WithEvents ui_txtSearch As New TextBox
-    Private WithEvents ui_cmbStatusFilter As New ComboBox
-    Private WithEvents ui_btnRefresh As New Button
-    Private WithEvents ui_btnExport As New Button
-    Private WithEvents ui_btnAction As New Button
-    Private WithEvents ui_btnDelete As New Button
-    Private WithEvents ui_lblStats As New Label
+    ' Tickets View
+    Private pnlViewTickets As New Panel
+    Private WithEvents dgvTickets As New DataGridView
+    Private WithEvents flpHistory As New FlowLayoutPanel
+    Private WithEvents txtSearch As New TextBox
+    Private WithEvents cmbStatusFilter As New ComboBox
+    Private WithEvents btnRefresh As New Button
+    Private WithEvents btnExport As New Button
+    Private WithEvents btnAction As New Button
+    Private WithEvents btnDelete As New Button
+    Private WithEvents lblStats As New Label
 
     ' Database Connection
     Private ReadOnly Property ConnString As String
@@ -64,242 +62,237 @@ Public Class DashboardForm
     Private Sub DashboardForm_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         Me.Controls.Clear()
         Me.DoubleBuffered = True
-
-        ' Initialize Colors
-        InitializeColors()
-
         SetupLayout()
+        LoadTickets()
 
-        ' --- ROLE BASED STARTUP ---
         If Session.CurrentUserRole = "Student" Then
             ApplyStudentLayout()
-            LoadTickets()
-            ShowView("Tickets") ' Student starts at History
+            ShowView("Tickets")
         Else
             ApplyAdminLayout()
-            LoadTickets()
-            ShowView("Dashboard") ' Admin starts at Dashboard
+            ShowView("Dashboard")
         End If
-    End Sub
-
-    Private Sub InitializeColors()
-        CategoryBrushes = New Dictionary(Of String, Brush)
-        ' Define specific colors for known categories
-        CategoryBrushes.Add("Hardware", Brushes.Tomato)
-        CategoryBrushes.Add("Software", Brushes.CornflowerBlue)
-        CategoryBrushes.Add("Network", Brushes.MediumSeaGreen)
-        CategoryBrushes.Add("Account", Brushes.Orange)
     End Sub
 
     ' --- 1. LAYOUT SETUP ---
     Private Sub SetupLayout()
         Me.Size = New Size(1200, 750)
-        Me.Text = "IT Help Desk"
-        Me.BackColor = Color.WhiteSmoke
+        Me.Text = "IT Help Desk System"
+        Me.BackColor = Color.FromArgb(240, 242, 245) ' Soft gray background
         Me.StartPosition = FormStartPosition.CenterScreen
 
         ' -- SIDEBAR --
-        ui_pnlSidebar.Parent = Me
-        ui_pnlSidebar.Dock = DockStyle.Left
-        ui_pnlSidebar.Width = 220
-        ui_pnlSidebar.BackColor = Color.FromArgb(30, 30, 40)
+        pnlSidebar.Parent = Me
+        pnlSidebar.Dock = DockStyle.Left
+        pnlSidebar.Width = 240
+        pnlSidebar.BackColor = Color.FromArgb(30, 35, 50)
+
+        ' Redesigned Logo Label (Top Left)
+        Dim lblLogo As New Label
+        lblLogo.Text = "IT HELP DESK"
+        lblLogo.ForeColor = Color.White
+        lblLogo.Font = New Font("Segoe UI", 14, FontStyle.Bold)
+        lblLogo.Dock = DockStyle.Top
+        lblLogo.Height = 80
+        lblLogo.TextAlign = ContentAlignment.MiddleLeft
+        lblLogo.Padding = New Padding(20, 0, 0, 0) ' Push text to the right
+        lblLogo.Parent = pnlSidebar
 
         ' Nav Buttons
-        CreateNavBtn(ui_btnNavLogout, "Log Out", DockStyle.Bottom)
-        If Session.CurrentUserRole = "Manager" Then CreateNavBtn(ui_btnNavUsers, "Manage Users", DockStyle.Top)
+        CreateNavBtn(btnNavLogout, "Log Out", DockStyle.Bottom)
+        If Session.CurrentUserRole = "Manager" Then CreateNavBtn(btnNavUsers, "Manage Users", DockStyle.Top)
 
-        Dim tListTitle As String = If(Session.CurrentUserRole = "Student", "My Concerns", "Ticket Management")
-        CreateNavBtn(ui_btnNavTickets, tListTitle, DockStyle.Top)
-        CreateNavBtn(ui_btnNavDashboard, "Overview", DockStyle.Top)
+        Dim tListTitle As String = If(Session.CurrentUserRole = "Student", "My Concerns", "Ticket List")
+        CreateNavBtn(btnNavTickets, tListTitle, DockStyle.Top)
+        CreateNavBtn(btnNavDashboard, "Dashboard", DockStyle.Top)
 
         ' -- HEADER --
-        ui_pnlHeader.Parent = Me
-        ui_pnlHeader.Dock = DockStyle.Top
-        ui_pnlHeader.Height = 60
-        ui_pnlHeader.BackColor = Color.White
-        ui_pnlHeader.BringToFront()
+        pnlHeader.Parent = Me
+        pnlHeader.Dock = DockStyle.Top
+        pnlHeader.Height = 60
+        pnlHeader.BackColor = Color.White
+        pnlHeader.BringToFront()
 
-        ' Title System (Top Right)
-        Dim lblSysTitle As New Label
-        lblSysTitle.Text = "IT HELP DESK"
-        lblSysTitle.Font = New Font("Segoe UI", 20, FontStyle.Bold)
-        lblSysTitle.ForeColor = Color.DodgerBlue
-        lblSysTitle.AutoSize = False
-        lblSysTitle.Size = New Size(300, 60)
-        lblSysTitle.TextAlign = ContentAlignment.MiddleRight
-        lblSysTitle.Padding = New Padding(0, 0, 20, 0)
-        lblSysTitle.Dock = DockStyle.Right ' Docks to the right of the Header
-        lblSysTitle.Parent = ui_pnlHeader
-
-        Dim lblUser As New Label
-        lblUser.Text = "User: " & Session.CurrentUserName & " (" & Session.CurrentUserRole & ")"
-        lblUser.Font = New Font("Segoe UI", 11, FontStyle.Italic)
-        lblUser.AutoSize = True
-        lblUser.Location = New Point(20, 20)
-        lblUser.Parent = ui_pnlHeader
+        Dim lblUser As New Label With {.Text = "Welcome, " & Session.CurrentUserName, .Font = New Font("Segoe UI", 11, FontStyle.Bold), .ForeColor = Color.DimGray, .AutoSize = True, .Location = New Point(25, 20), .Parent = pnlHeader}
 
         ' -- CONTENT AREA --
-        ui_pnlContent.Parent = Me
-        ui_pnlContent.Dock = DockStyle.Fill
-        ui_pnlContent.Padding = New Padding(20)
-        ui_pnlContent.BringToFront()
+        pnlContent.Parent = Me
+        pnlContent.Dock = DockStyle.Fill
+        pnlContent.Padding = New Padding(30)
+        pnlContent.BringToFront()
 
-        ' -- VIEW: DASHBOARD --
-        ui_pnlViewDashboard.Parent = ui_pnlContent
-        ui_pnlViewDashboard.Dock = DockStyle.Fill
+        ' ==========================
+        '      DASHBOARD VIEW
+        ' ==========================
+        pnlViewDashboard.Parent = pnlContent
+        pnlViewDashboard.Dock = DockStyle.Fill
 
-        CreateTile(ui_pnlViewDashboard, ui_lblTileTotal, "Total Tickets", Color.SlateGray, 0)
-        CreateTile(ui_pnlViewDashboard, ui_lblTilePending, "Pending", Color.Orange, 220)
-        CreateTile(ui_pnlViewDashboard, ui_lblTileResolved, "Resolved", Color.SeaGreen, 440)
+        ' 1. Summary Tiles (Redesigned as Cards)
+        CreateModernTile(pnlTileTotal, lblTileTotalVal, "Total Tickets", Color.SlateGray, 0)
+        CreateModernTile(pnlTilePending, lblTilePendingVal, "Pending", Color.Orange, 260)
+        CreateModernTile(pnlTileResolved, lblTileResolvedVal, "Resolved", Color.SeaGreen, 520)
 
-        ui_picGraph.Parent = ui_pnlViewDashboard
-        ui_picGraph.Location = New Point(0, 150)
-        ui_picGraph.Size = New Size(900, 400)
-        ui_picGraph.Anchor = AnchorStyles.Top Or AnchorStyles.Left Or AnchorStyles.Right Or AnchorStyles.Bottom
-        ui_picGraph.BackColor = Color.White
-        ui_picGraph.BorderStyle = BorderStyle.FixedSingle
+        ' 2. Graph (Redesigned - No Border)
+        picGraph.Parent = pnlViewDashboard
+        picGraph.Location = New Point(0, 160)
+        picGraph.Size = New Size(pnlContent.Width - 60, 450)
+        picGraph.Anchor = AnchorStyles.Top Or AnchorStyles.Left Or AnchorStyles.Right Or AnchorStyles.Bottom
+        picGraph.BackColor = Color.White ' Clean white background
+        picGraph.BorderStyle = BorderStyle.None ' REMOVED BORDER
 
-        ' -- VIEW: TICKETS --
-        ui_pnlViewTickets.Parent = ui_pnlContent
-        ui_pnlViewTickets.Dock = DockStyle.Fill
-        ui_pnlViewTickets.Visible = False
+        ' ==========================
+        '      TICKETS VIEW
+        ' ==========================
+        pnlViewTickets.Parent = pnlContent
+        pnlViewTickets.Dock = DockStyle.Fill
+        pnlViewTickets.Visible = False
 
-        ' Action Bar
-        ui_txtSearch.Parent = ui_pnlViewTickets
-        ui_txtSearch.Location = New Point(0, 10)
-        ui_txtSearch.Size = New Size(250, 30)
-        ui_txtSearch.PlaceholderText = "Search..."
+        ' Search Bar
+        txtSearch.Parent = pnlViewTickets
+        txtSearch.Location = New Point(0, 10)
+        txtSearch.Size = New Size(250, 30)
+        txtSearch.PlaceholderText = "Search tickets..."
 
-        ui_cmbStatusFilter.Parent = ui_pnlViewTickets
-        ui_cmbStatusFilter.Location = New Point(260, 10)
-        ui_cmbStatusFilter.DropDownStyle = ComboBoxStyle.DropDownList
-        ui_cmbStatusFilter.Items.AddRange(New String() {"All", "Pending", "In Progress", "Resolved"})
-        ui_cmbStatusFilter.SelectedIndex = 0
+        ' Filter Dropdown
+        cmbStatusFilter.Parent = pnlViewTickets
+        cmbStatusFilter.Location = New Point(260, 10)
+        cmbStatusFilter.DropDownStyle = ComboBoxStyle.DropDownList
+        cmbStatusFilter.Items.AddRange(New String() {"All", "Pending", "In Progress", "Resolved"})
+        cmbStatusFilter.SelectedIndex = 0
 
-        ui_btnRefresh.Parent = ui_pnlViewTickets
-        ui_btnRefresh.Text = "Refresh"
-        ui_btnRefresh.Location = New Point(400, 9)
-        ui_btnRefresh.Size = New Size(80, 25)
+        ' Refresh Button
+        btnRefresh.Parent = pnlViewTickets
+        btnRefresh.Text = "Refresh"
+        btnRefresh.Location = New Point(400, 9)
+        btnRefresh.Size = New Size(80, 25)
 
-        ui_btnExport.Parent = ui_pnlViewTickets
-        ui_btnExport.Text = "Export"
-        ui_btnExport.Location = New Point(490, 9)
-        ui_btnExport.Size = New Size(80, 25)
+        ' Export Button
+        btnExport.Parent = pnlViewTickets
+        btnExport.Text = "Export"
+        btnExport.Location = New Point(490, 9)
+        btnExport.Size = New Size(80, 25)
 
-        ui_btnAction.Parent = ui_pnlViewTickets
-        ui_btnAction.Size = New Size(150, 30)
-        ui_btnAction.FlatStyle = FlatStyle.Flat
-        ui_btnAction.Location = New Point(ui_pnlViewTickets.Width - 160, 9)
-        ui_btnAction.Anchor = AnchorStyles.Top Or AnchorStyles.Right
+        ' Action Buttons
+        btnAction.Parent = pnlViewTickets
+        btnAction.Size = New Size(140, 30)
+        btnAction.FlatStyle = FlatStyle.Flat
+        btnAction.Location = New Point(pnlViewTickets.Width - 150, 9)
+        btnAction.Anchor = AnchorStyles.Top Or AnchorStyles.Right
 
-        ui_btnDelete.Parent = ui_pnlViewTickets
-        ui_btnDelete.Text = "Delete"
-        ui_btnDelete.BackColor = Color.IndianRed
-        ui_btnDelete.ForeColor = Color.White
-        ui_btnDelete.FlatStyle = FlatStyle.Flat
-        ui_btnDelete.Size = New Size(100, 30)
-        ui_btnDelete.Location = New Point(ui_pnlViewTickets.Width - 270, 9)
-        ui_btnDelete.Anchor = AnchorStyles.Top Or AnchorStyles.Right
-        ui_btnDelete.Visible = False
+        btnDelete.Parent = pnlViewTickets
+        btnDelete.Text = "Delete"
+        btnDelete.BackColor = Color.IndianRed
+        btnDelete.ForeColor = Color.White
+        btnDelete.FlatStyle = FlatStyle.Flat
+        btnDelete.Size = New Size(100, 30)
+        btnDelete.Location = New Point(pnlViewTickets.Width - 260, 9)
+        btnDelete.Anchor = AnchorStyles.Top Or AnchorStyles.Right
+        btnDelete.Visible = False
 
-        ' -- ADMIN GRID --
-        ui_dgvTickets.Parent = ui_pnlViewTickets
-        ui_dgvTickets.Location = New Point(0, 50)
-        ui_dgvTickets.Size = New Size(ui_pnlViewTickets.Width, ui_pnlViewTickets.Height - 50)
-        ui_dgvTickets.Anchor = AnchorStyles.Top Or AnchorStyles.Bottom Or AnchorStyles.Left Or AnchorStyles.Right
-        ui_dgvTickets.BackgroundColor = Color.White
-        ui_dgvTickets.BorderStyle = BorderStyle.None
-        ui_dgvTickets.AllowUserToAddRows = False
-        ui_dgvTickets.ReadOnly = True
-        ui_dgvTickets.SelectionMode = DataGridViewSelectionMode.FullRowSelect
-        ui_dgvTickets.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
+        ' Admin Grid
+        dgvTickets.Parent = pnlViewTickets
+        dgvTickets.Location = New Point(0, 50)
+        dgvTickets.Size = New Size(pnlViewTickets.Width, pnlViewTickets.Height - 80)
+        dgvTickets.Anchor = AnchorStyles.Top Or AnchorStyles.Bottom Or AnchorStyles.Left Or AnchorStyles.Right
+        dgvTickets.BackgroundColor = Color.White
+        dgvTickets.BorderStyle = BorderStyle.None
+        dgvTickets.AllowUserToAddRows = False
+        dgvTickets.ReadOnly = True
+        dgvTickets.SelectionMode = DataGridViewSelectionMode.FullRowSelect
+        dgvTickets.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
 
-        ' -- STUDENT HISTORY LIST (NEW) --
-        ui_flpHistory.Parent = ui_pnlViewTickets
-        ui_flpHistory.Location = New Point(0, 50)
-        ui_flpHistory.Size = New Size(ui_pnlViewTickets.Width, ui_pnlViewTickets.Height - 50)
-        ui_flpHistory.Anchor = AnchorStyles.Top Or AnchorStyles.Bottom Or AnchorStyles.Left Or AnchorStyles.Right
-        ui_flpHistory.AutoScroll = True
-        ui_flpHistory.FlowDirection = FlowDirection.TopDown
-        ui_flpHistory.WrapContents = False
-        ui_flpHistory.Visible = False
+        ' Student List
+        flpHistory.Parent = pnlViewTickets
+        flpHistory.Location = New Point(0, 50)
+        flpHistory.Size = New Size(pnlViewTickets.Width, pnlViewTickets.Height - 80)
+        flpHistory.Anchor = AnchorStyles.Top Or AnchorStyles.Bottom Or AnchorStyles.Left Or AnchorStyles.Right
+        flpHistory.AutoScroll = True
+        flpHistory.FlowDirection = FlowDirection.TopDown
+        flpHistory.WrapContents = False
+        flpHistory.Visible = False
+
+        lblStats.Parent = pnlViewTickets
+        lblStats.Dock = DockStyle.Bottom
+        lblStats.Height = 30
+        lblStats.TextAlign = ContentAlignment.MiddleLeft
     End Sub
 
     Private Sub CreateNavBtn(btn As Button, text As String, dock As DockStyle)
-        btn.Parent = ui_pnlSidebar
+        btn.Parent = pnlSidebar
         btn.Text = "  " & text
         btn.Dock = dock
         btn.Height = 55
         btn.FlatStyle = FlatStyle.Flat
         btn.FlatAppearance.BorderSize = 0
-        btn.ForeColor = Color.LightGray
-        btn.Font = New Font("Segoe UI", 11)
+        btn.ForeColor = Color.FromArgb(200, 200, 200)
+        btn.Font = New Font("Segoe UI", 10, FontStyle.Regular)
         btn.TextAlign = ContentAlignment.MiddleLeft
+        btn.Padding = New Padding(20, 0, 0, 0)
         btn.Cursor = Cursors.Hand
+        AddHandler btn.MouseEnter, Sub() btn.BackColor = Color.FromArgb(50, 55, 70)
+        AddHandler btn.MouseLeave, Sub() btn.BackColor = Color.Transparent
     End Sub
 
-    Private Sub CreateTile(parentPnl As Panel, lbl As Label, title As String, color As Color, x As Integer)
-        Dim pnl As New Panel
-        pnl.Parent = parentPnl
+    ' --- NEW TILE DESIGN ---
+    Private Sub CreateModernTile(pnl As Panel, lblVal As Label, title As String, accentColor As Color, x As Integer)
+        pnl.Parent = pnlViewDashboard
         pnl.Location = New Point(x, 10)
-        pnl.Size = New Size(200, 100)
-        pnl.BackColor = color
+        pnl.Size = New Size(240, 120)
+        pnl.BackColor = Color.White
+        ' No border for cleaner look, or we can paint one
 
-        Dim lTitle As New Label
-        lTitle.Text = title
-        lTitle.ForeColor = Color.White
-        lTitle.Location = New Point(10, 10)
-        lTitle.AutoSize = True
-        lTitle.Parent = pnl
+        ' Color Strip on Left
+        Dim strip As New Panel
+        strip.Width = 6
+        strip.Dock = DockStyle.Left
+        strip.BackColor = accentColor
+        strip.Parent = pnl
 
-        lbl.Text = "0"
-        lbl.ForeColor = Color.White
-        lbl.Font = New Font("Segoe UI", 24, FontStyle.Bold)
-        lbl.Location = New Point(10, 35)
-        lbl.AutoSize = True
-        lbl.Parent = pnl
+        ' Title Label
+        Dim lblTitle As New Label
+        lblTitle.Text = title.ToUpper()
+        lblTitle.ForeColor = Color.Gray
+        lblTitle.Font = New Font("Segoe UI", 9, FontStyle.Bold)
+        lblTitle.Location = New Point(20, 20)
+        lblTitle.AutoSize = True
+        lblTitle.Parent = pnl
+
+        ' Value Label
+        lblVal.Text = "0"
+        lblVal.ForeColor = Color.FromArgb(64, 64, 64)
+        lblVal.Font = New Font("Segoe UI", 32, FontStyle.Bold)
+        lblVal.Location = New Point(15, 45)
+        lblVal.AutoSize = True
+        lblVal.Parent = pnl
     End Sub
 
-    ' --- 2. LAYOUT LOGIC ---
-    Private Sub ApplyStudentLayout()
-        ' Hide Admin stuff
-        ui_btnNavDashboard.Visible = False ' Students don't need stats overview
-        ui_btnNavUsers.Visible = False
-        ui_btnExport.Visible = False
-        ui_btnDelete.Visible = False
-        ui_dgvTickets.Visible = False ' HIDE GRID
-
-        ' Show Student stuff
-        ui_flpHistory.Visible = True ' SHOW LIST
-
-        ' Config Action Button
-        ui_btnAction.Text = "+ New Concern"
-        ui_btnAction.BackColor = Color.DodgerBlue
-        ui_btnAction.ForeColor = Color.White
-    End Sub
-
-    Private Sub ApplyAdminLayout()
-        ' Show Admin stuff
-        ui_btnNavDashboard.Visible = True
-        ui_btnExport.Visible = True
-        ui_dgvTickets.Visible = True ' SHOW GRID
-        ui_btnDelete.Visible = True
-
-        ' Hide Student stuff
-        ui_flpHistory.Visible = False
-
-        ' Config Action Button
-        ui_btnAction.Text = "Mark Resolved"
-        ui_btnAction.BackColor = Color.SeaGreen
-        ui_btnAction.ForeColor = Color.White
-    End Sub
-
+    ' --- VIEW LOGIC ---
     Private Sub ShowView(view As String)
-        ui_pnlViewDashboard.Visible = (view = "Dashboard")
-        ui_pnlViewTickets.Visible = (view = "Tickets")
+        pnlViewDashboard.Visible = (view = "Dashboard")
+        pnlViewTickets.Visible = (view = "Tickets")
     End Sub
 
-    ' --- 3. DATA LOADING & RENDERING ---
+    Private Sub btnNavDashboard_Click(sender As Object, e As EventArgs) Handles btnNavDashboard.Click
+        ShowView("Dashboard")
+        LoadTickets()
+    End Sub
+
+    Private Sub btnNavTickets_Click(sender As Object, e As EventArgs) Handles btnNavTickets.Click
+        ShowView("Tickets")
+        LoadTickets()
+    End Sub
+
+    Private Sub btnNavUsers_Click(sender As Object, e As EventArgs) Handles btnNavUsers.Click
+        Dim frm As New UserManagementForm
+        frm.ShowDialog()
+    End Sub
+
+    Private Sub btnNavLogout_Click(sender As Object, e As EventArgs) Handles btnNavLogout.Click
+        Me.DialogResult = DialogResult.OK
+        Me.Close()
+    End Sub
+
+    ' --- DATA LOGIC ---
     Private Sub LoadTickets()
         Using conn As New OleDbConnection(ConnString)
             Try
@@ -317,41 +310,36 @@ Public Class DashboardForm
                 End If
 
                 Dim da As New OleDbDataAdapter(cmd)
-                dtTickets = New DataTable()
+                dtTickets.Clear()
                 da.Fill(dtTickets)
 
-                ' Render based on role
                 If Session.CurrentUserRole = "Student" Then
-                    RenderStudentCards(dtTickets)
+                    RenderStudentCards()
                 Else
-                    ui_dgvTickets.DataSource = dtTickets
-                    UpdateStats()
+                    FilterData()
+                    LoadAnalyticsData()
                 End If
-
             Catch ex As Exception
-                ' Error handling
             End Try
         End Using
     End Sub
 
-    ' --- NEW: TEXT/CARD RENDERER FOR STUDENTS ---
-    Private Sub RenderStudentCards(dt As DataTable)
-        ui_flpHistory.Controls.Clear()
-        ui_flpHistory.SuspendLayout()
+    Private Sub RenderStudentCards()
+        flpHistory.Controls.Clear()
+        flpHistory.SuspendLayout()
 
-        If dt.Rows.Count = 0 Then
+        If dtTickets.Rows.Count = 0 Then
             Dim lbl As New Label With {.Text = "No concerns reported yet.", .AutoSize = True, .Font = New Font("Segoe UI", 12), .ForeColor = Color.Gray, .Margin = New Padding(20)}
-            ui_flpHistory.Controls.Add(lbl)
+            flpHistory.Controls.Add(lbl)
         Else
-            For Each row As DataRow In dt.Rows
+            For Each row As DataRow In dtTickets.Rows
                 Dim pnl As New Panel
-                pnl.Width = ui_flpHistory.Width - 40
+                pnl.Width = flpHistory.Width - 40
                 pnl.Height = 140
                 pnl.BackColor = Color.White
                 pnl.Margin = New Padding(0, 0, 0, 15)
                 pnl.Padding = New Padding(15)
 
-                ' Color Strip based on Status
                 Dim pnlStatus As New Panel
                 pnlStatus.Width = 5
                 pnlStatus.Dock = DockStyle.Left
@@ -359,7 +347,6 @@ Public Class DashboardForm
                 If status = "Resolved" Then pnlStatus.BackColor = Color.SeaGreen Else pnlStatus.BackColor = Color.Orange
                 pnl.Controls.Add(pnlStatus)
 
-                ' Header (Date & Category)
                 Dim lblHead As New Label
                 lblHead.Text = Convert.ToDateTime(row("DateSubmitted")).ToString("MMM dd, yyyy") & "  •  " & row("Category").ToString() & "  •  " & row("Priority").ToString() & " Priority"
                 lblHead.Font = New Font("Segoe UI", 9, FontStyle.Bold)
@@ -368,7 +355,6 @@ Public Class DashboardForm
                 lblHead.AutoSize = True
                 pnl.Controls.Add(lblHead)
 
-                ' Issue Body (Text)
                 Dim lblBody As New Label
                 lblBody.Text = row("IssueSubject").ToString()
                 lblBody.Font = New Font("Segoe UI", 11, FontStyle.Regular)
@@ -377,14 +363,13 @@ Public Class DashboardForm
                 lblBody.AutoEllipsis = True
                 pnl.Controls.Add(lblBody)
 
-                ' Footer (Status text + Remarks)
                 Dim lblFoot As New Label
                 lblFoot.Location = New Point(20, 100)
                 lblFoot.AutoSize = True
                 lblFoot.Font = New Font("Segoe UI", 9, FontStyle.Regular)
 
                 If status = "Resolved" Then
-                    lblFoot.Text = "Status: Resolved  | Admin Remarks: " & row("AdminRemarks").ToString()
+                    lblFoot.Text = "Status: Resolved  |  Admin Remarks: " & row("AdminRemarks").ToString()
                     lblFoot.ForeColor = Color.SeaGreen
                 Else
                     lblFoot.Text = "Status: Pending (Waiting for support)"
@@ -392,17 +377,180 @@ Public Class DashboardForm
                 End If
                 pnl.Controls.Add(lblFoot)
 
-                ui_flpHistory.Controls.Add(pnl)
+                flpHistory.Controls.Add(pnl)
             Next
         End If
-
-        ui_flpHistory.ResumeLayout()
+        flpHistory.ResumeLayout()
     End Sub
 
-    ' --- BUTTON ACTIONS ---
-    Private Sub ui_btnAction_Click(sender As Object, e As EventArgs) Handles ui_btnAction.Click
+    Private Sub FilterData()
+        If dtTickets Is Nothing Then Return
+        Dim view As DataView = dtTickets.DefaultView
+        Dim filter As String = ""
+
+        If Not String.IsNullOrEmpty(txtSearch.Text) AndAlso dtTickets.Columns.Contains("IssueSubject") Then
+            filter = String.Format("(IssueSubject LIKE '%{0}%' OR Category LIKE '%{0}%')", txtSearch.Text.Replace("'", "''"))
+        End If
+
+        If cmbStatusFilter.SelectedIndex > 0 AndAlso dtTickets.Columns.Contains("Status") Then
+            If filter.Length > 0 Then filter &= " AND "
+            filter &= String.Format("Status = '{0}'", cmbStatusFilter.SelectedItem.ToString())
+        End If
+
+        Try
+            view.RowFilter = filter
+            dgvTickets.DataSource = view
+            UpdateStats(view)
+        Catch
+            view.RowFilter = ""
+        End Try
+    End Sub
+
+    Private Sub UpdateStats(view As DataView)
+        Dim total As Integer = view.Count
+        Dim pending As Integer = 0
+        Dim resolved As Integer = 0
+
+        For Each rowView As DataRowView In view
+            Dim st = rowView("Status").ToString()
+            If st = "Pending" Then pending += 1
+            If st = "Resolved" Then resolved += 1
+        Next
+
+        lblTileTotalVal.Text = total.ToString()
+        lblTilePendingVal.Text = pending.ToString()
+        lblTileResolvedVal.Text = resolved.ToString()
+
+        ' Trigger Animation
+        AnimationProgress = 0
+        AnimationTimer.Start()
+    End Sub
+
+    Private Sub LoadAnalyticsData()
+        CategoryCounts.Clear()
+        For Each row As DataRow In dtTickets.Rows
+            Dim cat = row("Category").ToString()
+            If CategoryCounts.ContainsKey(cat) Then CategoryCounts(cat) += 1 Else CategoryCounts.Add(cat, 1)
+        Next
+    End Sub
+
+    Private Sub AnimationTimer_Tick(sender As Object, e As EventArgs) Handles AnimationTimer.Tick
+        AnimationProgress += 0.05F
+        If AnimationProgress >= 1.0F Then
+            AnimationProgress = 1.0F
+            AnimationTimer.Stop()
+        End If
+        picGraph.Invalidate()
+    End Sub
+
+    ' --- REDESIGNED BAR CHART (No Border, Floating Style) ---
+    Private Sub picGraph_Paint(sender As Object, e As PaintEventArgs) Handles picGraph.Paint
+        Dim g = e.Graphics
+        g.SmoothingMode = SmoothingMode.AntiAlias
+        g.TextRenderingHint = Drawing.Text.TextRenderingHint.ClearTypeGridFit
+
+        ' 1. Clear Background (Ensure White)
+        g.Clear(Color.White)
+
+        If CategoryCounts.Count = 0 Then
+            Dim msg = "No data available"
+            Dim sf As New StringFormat With {.Alignment = StringAlignment.Center, .LineAlignment = StringAlignment.Center}
+            g.DrawString(msg, New Font("Segoe UI", 12), Brushes.Gray, picGraph.ClientRectangle, sf)
+            Return
+        End If
+
+        ' 2. Calculate Metrics
+        Dim w As Integer = picGraph.Width
+        Dim h As Integer = picGraph.Height
+        Dim paddingBottom As Integer = 40
+        Dim paddingTop As Integer = 40
+        Dim graphHeight As Integer = h - paddingBottom - paddingTop
+
+        Dim maxVal As Integer = 0
+        For Each v In CategoryCounts.Values
+            If v > maxVal Then maxVal = v
+        Next
+        Dim topScale As Integer = If(maxVal = 0, 5, maxVal)
+
+        ' 3. Draw Soft Grid Lines (Horizontal Only)
+        Dim penGrid As New Pen(Color.FromArgb(240, 240, 240), 1)
+        For i As Integer = 0 To 4
+            Dim y As Integer = paddingTop + CInt((graphHeight / 4) * i)
+            g.DrawLine(penGrid, 20, y, w - 20, y)
+        Next
+
+        ' 4. Draw Bars
+        Dim count As Integer = CategoryCounts.Count
+        Dim slotWidth As Integer = CInt((w - 40) / count)
+        Dim barWidth As Integer = Math.Min(80, CInt(slotWidth * 0.6))
+        Dim startX As Integer = 20
+        Dim idx As Integer = 0
+
+        Dim colors() As Color = {Color.FromArgb(100, 149, 237), Color.FromArgb(60, 179, 113), Color.FromArgb(255, 165, 0), Color.FromArgb(255, 99, 71)}
+
+        For Each kvp In CategoryCounts
+            Dim val As Integer = kvp.Value
+            ' Animate Height
+            Dim barH As Integer = CInt((val / topScale) * graphHeight * AnimationProgress)
+
+            Dim x As Integer = startX + (idx * slotWidth) + (slotWidth - barWidth) \ 2
+            Dim y As Integer = (h - paddingBottom) - barH
+
+            Dim rect As New Rectangle(x, y, barWidth, barH)
+
+            ' Gradient Fill
+            If barH > 0 Then
+                Using br As New LinearGradientBrush(rect, colors(idx Mod colors.Length), ControlPaint.Light(colors(idx Mod colors.Length)), LinearGradientMode.Vertical)
+                    g.FillRectangle(br, rect)
+                End Using
+            End If
+
+            ' Value Label (Floating Top)
+            If AnimationProgress > 0.5 Then
+                Dim valStr = val.ToString()
+                Dim fontVal As New Font("Segoe UI", 10, FontStyle.Bold)
+                Dim szVal = g.MeasureString(valStr, fontVal)
+                g.DrawString(valStr, fontVal, Brushes.Black, x + (barWidth - szVal.Width) / 2, y - 20)
+            End If
+
+            ' Category Label (Bottom)
+            Dim catStr = kvp.Key
+            If catStr.Length > 10 Then catStr = catStr.Substring(0, 8) & ".."
+            Dim fontCat As New Font("Segoe UI", 9, FontStyle.Regular)
+            Dim szCat = g.MeasureString(catStr, fontCat)
+            g.DrawString(catStr, fontCat, Brushes.Gray, x + (barWidth - szCat.Width) / 2, h - paddingBottom + 5)
+
+            idx += 1
+        Next
+    End Sub
+
+    ' --- ROLES ---
+    Private Sub ApplyStudentLayout()
+        btnNavDashboard.Visible = False
+        btnNavUsers.Visible = False
+        btnExport.Visible = False
+        btnDelete.Visible = False
+        dgvTickets.Visible = False
+        flpHistory.Visible = True
+        btnAction.Text = "+ New Ticket"
+        btnAction.BackColor = Color.DodgerBlue
+        btnAction.ForeColor = Color.White
+    End Sub
+
+    Private Sub ApplyAdminLayout()
+        btnNavDashboard.Visible = True
+        btnExport.Visible = True
+        btnDelete.Visible = True
+        dgvTickets.Visible = True
+        flpHistory.Visible = False
+        btnAction.Text = "Mark Resolved"
+        btnAction.BackColor = Color.SeaGreen
+        btnAction.ForeColor = Color.White
+    End Sub
+
+    ' --- ACTIONS ---
+    Private Sub btnAction_Click(sender As Object, e As EventArgs) Handles btnAction.Click
         If Session.CurrentUserRole = "Student" Then
-            ' STUDENT: NEW TICKET
             Dim category As String = ""
             Dim priority As String = ""
             Dim issue As String = ""
@@ -422,11 +570,9 @@ Public Class DashboardForm
                 LoadTickets()
             End If
         Else
-            ' ADMIN: RESOLVE TICKET
-            If ui_dgvTickets.SelectedRows.Count = 0 Then Return
-            Dim id = Convert.ToInt32(ui_dgvTickets.SelectedRows(0).Cells("TicketID").Value)
+            If dgvTickets.SelectedRows.Count = 0 Then Return
+            Dim id = Convert.ToInt32(dgvTickets.SelectedRows(0).Cells("TicketID").Value)
             Dim remk = CustomInputBox("Resolution Remarks:", "Resolve")
-
             Using conn As New OleDbConnection(ConnString)
                 conn.Open()
                 Dim cmd As New OleDbCommand("UPDATE tblTickets SET Status='Resolved', AdminRemarks=? WHERE TicketID=?", conn)
@@ -439,109 +585,14 @@ Public Class DashboardForm
         End If
     End Sub
 
-    ' --- NAV EVENTS ---
-    Private Sub ui_btnNavDashboard_Click(sender As Object, e As EventArgs) Handles ui_btnNavDashboard.Click
-        ShowView("Dashboard")
-        LoadTickets()
-    End Sub
-
-    Private Sub ui_btnNavTickets_Click(sender As Object, e As EventArgs) Handles ui_btnNavTickets.Click
-        ShowView("Tickets")
-        LoadTickets()
-    End Sub
-
-    Private Sub ui_btnNavUsers_Click(sender As Object, e As EventArgs) Handles ui_btnNavUsers.Click
-        Dim frm As New UserManagementForm
-        frm.ShowDialog()
-    End Sub
-
-    Private Sub ui_btnNavLogout_Click(sender As Object, e As EventArgs) Handles ui_btnNavLogout.Click
-        Me.DialogResult = DialogResult.OK
-        Me.Close()
-    End Sub
-
-    ' --- ANIMATION LOGIC ---
-    Private Sub UpdateStats()
-        If dtTickets Is Nothing Then Return
-        Dim total = dtTickets.Rows.Count
-        Dim pending = 0
-        Dim resolved = 0
-        CategoryCounts.Clear()
-
-        For Each row As DataRow In dtTickets.Rows
-            Dim st = row("Status").ToString()
-            If st = "Pending" Then pending += 1
-            If st = "Resolved" Then resolved += 1
-
-            Dim cat = row("Category").ToString()
-            If CategoryCounts.ContainsKey(cat) Then CategoryCounts(cat) += 1 Else CategoryCounts.Add(cat, 1)
-        Next
-
-        ui_lblTileTotal.Text = total.ToString()
-        ui_lblTilePending.Text = pending.ToString()
-        ui_lblTileResolved.Text = resolved.ToString()
-
-        ' Trigger Animation
-        AnimationProgress = 0
-        AnimationTimer.Start()
-    End Sub
-
-    Private Sub AnimationTimer_Tick(sender As Object, e As EventArgs) Handles AnimationTimer.Tick
-        AnimationProgress += 0.05F ' Increase progress
-        If AnimationProgress >= 1.0F Then
-            AnimationProgress = 1.0F
-            AnimationTimer.Stop()
+    Private Sub btnDelete_Click(sender As Object, e As EventArgs) Handles btnDelete.Click
+        If dgvTickets.SelectedRows.Count = 0 Then
+            MessageBox.Show("Please select a ticket to delete.")
+            Return
         End If
-        ui_picGraph.Invalidate() ' Redraw graph
-    End Sub
 
-    ' --- PAINT WITH COLORS & ANIMATION ---
-    Private Sub ui_picGraph_Paint(sender As Object, e As PaintEventArgs) Handles ui_picGraph.Paint
-        If CategoryCounts.Count = 0 Then Return
-        Dim g = e.Graphics
-        g.SmoothingMode = SmoothingMode.AntiAlias
-        Dim w = ui_picGraph.Width
-        Dim h = ui_picGraph.Height
-        Dim colW = w / CategoryCounts.Count
-        Dim maxVal = 1
-        For Each v In CategoryCounts.Values
-            If v > maxVal Then maxVal = v
-        Next
-
-        Dim i = 0
-        For Each kvp In CategoryCounts
-            ' 1. Calculate Full Height
-            Dim targetHeight = (kvp.Value / maxVal) * (h - 50)
-
-            ' 2. Apply Animation Factor
-            Dim currentHeight = targetHeight * AnimationProgress
-
-            ' 3. Pick Color
-            Dim barBrush As Brush
-            If CategoryBrushes.ContainsKey(kvp.Key) Then
-                barBrush = CategoryBrushes(kvp.Key)
-            Else
-                barBrush = Brushes.Gray ' Fallback color
-            End If
-
-            ' 4. Draw
-            Dim rect As New Rectangle(i * colW + 20, h - currentHeight - 30, colW - 40, currentHeight)
-            g.FillRectangle(barBrush, rect)
-
-            ' Draw labels only when bar is visible enough
-            If AnimationProgress > 0.5 Then
-                g.DrawString(kvp.Value.ToString(), Me.Font, Brushes.Black, rect.X + 10, rect.Y - 20)
-                g.DrawString(kvp.Key, Me.Font, Brushes.Black, rect.X, h - 20)
-            End If
-
-            i += 1
-        Next
-    End Sub
-
-    Private Sub ui_btnDelete_Click(sender As Object, e As EventArgs) Handles ui_btnDelete.Click
-        If ui_dgvTickets.SelectedRows.Count = 0 Then Return
-        If MessageBox.Show("Delete this ticket?", "Confirm", MessageBoxButtons.YesNo) = DialogResult.Yes Then
-            Dim id = Convert.ToInt32(ui_dgvTickets.SelectedRows(0).Cells("TicketID").Value)
+        If MessageBox.Show("Delete this ticket?", "Confirm", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) = DialogResult.Yes Then
+            Dim id = Convert.ToInt32(dgvTickets.SelectedRows(0).Cells("TicketID").Value)
             Using conn As New OleDbConnection(ConnString)
                 conn.Open()
                 Dim cmd As New OleDbCommand("DELETE FROM tblTickets WHERE TicketID=?", conn)
@@ -552,8 +603,36 @@ Public Class DashboardForm
         End If
     End Sub
 
-    Private Sub ui_btnRefresh_Click(sender As Object, e As EventArgs) Handles ui_btnRefresh.Click
+    Private Sub btnRefresh_Click(sender As Object, e As EventArgs) Handles btnRefresh.Click
         LoadTickets()
+    End Sub
+
+    Private Sub txtSearch_TextChanged(sender As Object, e As EventArgs) Handles txtSearch.TextChanged
+        FilterData()
+    End Sub
+
+    Private Sub cmbStatusFilter_SelectedIndexChanged(sender As Object, e As EventArgs) Handles cmbStatusFilter.SelectedIndexChanged
+        FilterData()
+    End Sub
+
+    Private Sub btnExport_Click(sender As Object, e As EventArgs) Handles btnExport.Click
+        If dtTickets Is Nothing Then Return
+        Dim sfd As New SaveFileDialog With {.Filter = "CSV|*.csv", .FileName = "Report.csv"}
+        If sfd.ShowDialog() = DialogResult.OK Then
+            Dim sb As New StringBuilder
+            For Each col As DataColumn In dtTickets.Columns
+                sb.Append(col.ColumnName & ",")
+            Next
+            sb.AppendLine()
+            For Each row As DataRow In dtTickets.Rows
+                For Each item In row.ItemArray
+                    sb.Append(item.ToString().Replace(",", " ") & ",")
+                Next
+                sb.AppendLine()
+            Next
+            File.WriteAllText(sfd.FileName, sb.ToString())
+            MessageBox.Show("Exported!")
+        End If
     End Sub
 
     Private Function CustomInputBox(prompt As String, title As String) As String
@@ -567,22 +646,17 @@ Public Class DashboardForm
 
     Private Function ShowReportDialog(ByRef category As String, ByRef priority As String, ByRef issue As String) As Boolean
         Dim f As New Form With {.Width = 450, .Height = 450, .Text = "Report a Concern", .StartPosition = FormStartPosition.CenterParent}
-
         Dim l1 As New Label With {.Text = "Category", .Left = 20, .Top = 20, .Parent = f}
         Dim c1 As New ComboBox With {.Left = 20, .Top = 45, .Width = 390, .Parent = f, .DropDownStyle = ComboBoxStyle.DropDownList}
         c1.Items.AddRange({"Hardware", "Software", "Network", "Account"})
         c1.SelectedIndex = 0
-
         Dim l2 As New Label With {.Text = "Priority", .Left = 20, .Top = 85, .Parent = f}
         Dim c2 As New ComboBox With {.Left = 20, .Top = 110, .Width = 390, .Parent = f, .DropDownStyle = ComboBoxStyle.DropDownList}
         c2.Items.AddRange({"Low", "Medium", "High"})
         c2.SelectedIndex = 1
-
         Dim l3 As New Label With {.Text = "Description", .Left = 20, .Top = 150, .Parent = f}
         Dim t1 As New TextBox With {.Left = 20, .Top = 175, .Width = 390, .Height = 100, .Multiline = True, .Parent = f}
-
         Dim btn As New Button With {.Text = "Submit", .Left = 260, .Top = 300, .DialogResult = DialogResult.OK, .Parent = f}
-
         If f.ShowDialog() = DialogResult.OK Then
             category = c1.SelectedItem.ToString()
             priority = c2.SelectedItem.ToString()
@@ -591,5 +665,25 @@ Public Class DashboardForm
         End If
         Return False
     End Function
+
+    Private Sub btnNavDashboard_Click(sender As Object, e As EventArgs) Handles btnNavDashboard.Click
+        ShowView("Dashboard")
+        LoadTickets()
+    End Sub
+
+    Private Sub btnNavTickets_Click(sender As Object, e As EventArgs) Handles btnNavTickets.Click
+        ShowView("Tickets")
+        LoadTickets()
+    End Sub
+
+    Private Sub btnNavUsers_Click(sender As Object, e As EventArgs) Handles btnNavUsers.Click
+        Dim frm As New UserManagementForm
+        frm.ShowDialog()
+    End Sub
+
+    Private Sub btnNavLogout_Click(sender As Object, e As EventArgs) Handles btnNavLogout.Click
+        Me.DialogResult = DialogResult.OK
+        Me.Close()
+    End Sub
 
 End Class
