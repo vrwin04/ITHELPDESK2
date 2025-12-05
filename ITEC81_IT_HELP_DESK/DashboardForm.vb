@@ -100,6 +100,7 @@ Public Class DashboardForm
 
         ' Nav Buttons
         CreateNavBtn(btnNavLogout, "Log Out", DockStyle.Bottom)
+
         If Session.CurrentUserRole = "Manager" Then CreateNavBtn(btnNavUsers, "Manage Users", DockStyle.Top)
 
         Dim tListTitle As String = If(Session.CurrentUserRole = "Student", "My Concerns", "Ticket List")
@@ -369,7 +370,7 @@ Public Class DashboardForm
                 lblFoot.Font = New Font("Segoe UI", 9, FontStyle.Regular)
 
                 If status = "Resolved" Then
-                    lblFoot.Text = "Status: Resolved  |  Admin Remarks: " & row("AdminRemarks").ToString()
+                    lblFoot.Text = "Status: Resolved  | Admin Remarks: " & row("AdminRemarks").ToString()
                     lblFoot.ForeColor = Color.SeaGreen
                 Else
                     lblFoot.Text = "Status: Pending (Waiting for support)"
@@ -665,25 +666,5 @@ Public Class DashboardForm
         End If
         Return False
     End Function
-
-    Private Sub btnNavDashboard_Click(sender As Object, e As EventArgs) Handles btnNavDashboard.Click
-        ShowView("Dashboard")
-        LoadTickets()
-    End Sub
-
-    Private Sub btnNavTickets_Click(sender As Object, e As EventArgs) Handles btnNavTickets.Click
-        ShowView("Tickets")
-        LoadTickets()
-    End Sub
-
-    Private Sub btnNavUsers_Click(sender As Object, e As EventArgs) Handles btnNavUsers.Click
-        Dim frm As New UserManagementForm
-        frm.ShowDialog()
-    End Sub
-
-    Private Sub btnNavLogout_Click(sender As Object, e As EventArgs) Handles btnNavLogout.Click
-        Me.DialogResult = DialogResult.OK
-        Me.Close()
-    End Sub
 
 End Class
