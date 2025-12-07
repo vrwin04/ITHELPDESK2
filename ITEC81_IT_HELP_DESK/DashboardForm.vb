@@ -17,16 +17,19 @@ Public Class DashboardForm
     Private Sub DashboardForm_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         Me.DoubleBuffered = True
 
+        ' Set User Welcome Message
         lblUser.Text = "Welcome, " & Session.CurrentUserName
 
+        ' Load initial data
         LoadTickets()
 
+        ' Apply Layout based on Role
         If Session.CurrentUserRole = "Student" Then
             ApplyStudentLayout()
-            ShowView("Tickets")
+            ShowView("Tickets")   ' Students go straight to Ticket List
         Else
             ApplyAdminLayout()
-            ShowView("Dashboard")
+            ShowView("Dashboard") ' Admins see Analytics first
         End If
     End Sub
 
@@ -62,8 +65,10 @@ Public Class DashboardForm
         Dim query As String
 
         If Session.CurrentUserRole = "Student" Then
+            ' Students: See only their own tickets
             query = "SELECT [TicketID], [Category], [Priority], [IssueSubject], [Status], [AdminRemarks], [DateSubmitted] FROM tblTickets WHERE [SubmittedBy] = ? ORDER BY [DateSubmitted] DESC"
         Else
+            ' Admin: See all tickets
             query = "SELECT t.TicketID, u.Username AS [ReportedBy], t.Category, t.Priority, t.IssueSubject, t.Status, t.AdminRemarks, t.DateSubmitted FROM tblTickets t INNER JOIN tblUsers u ON t.SubmittedBy = u.UserID ORDER BY t.DateSubmitted DESC"
         End If
 
@@ -159,7 +164,7 @@ Public Class DashboardForm
         End If
     End Sub
 
-    ' --- STUDENT UI RENDERER (Larger Cards) ---
+    ' --- STUDENT UI RENDERER (Full Width Cards) ---
     Private Sub RenderStudentCards()
         flpHistory.Controls.Clear()
         flpHistory.SuspendLayout()
@@ -181,12 +186,12 @@ Public Class DashboardForm
                 stColor = Color.Orange
             End If
 
-            ' INCREASED HEIGHT: 180px for better readability
+            ' Card Panel - Dynamic Width based on container (since sidebar is gone)
             Dim pnl As New Panel With {
                 .Width = flpHistory.Width - 40,
-                .Height = 180,
+                .Height = 160,
                 .BackColor = Color.White,
-                .Margin = New Padding(0, 0, 0, 15),
+                .Margin = New Padding(0, 0, 0, 10),
                 .Padding = New Padding(15),
                 .BorderStyle = BorderStyle.FixedSingle
             }
@@ -205,20 +210,20 @@ Public Class DashboardForm
             }
             pnl.Controls.Add(lblHead)
 
-            ' INCREASED TEXT AREA: 90px height for Description
+            ' Issue Description
             Dim lblBody As New Label With {
                 .Text = row("IssueSubject").ToString(),
                 .Font = New Font("Segoe UI", 12, FontStyle.Bold),
                 .Location = New Point(20, 35),
-                .Size = New Size(pnl.Width - 40, 90),
+                .Size = New Size(pnl.Width - 40, 70),
                 .AutoEllipsis = True
             }
             pnl.Controls.Add(lblBody)
 
-            ' FOOTER MOVED DOWN
+            ' Status Footer
             Dim lblFoot As New Label With {
                 .Text = "Status: " & status.ToUpper(),
-                .Location = New Point(20, 135),
+                .Location = New Point(20, 115),
                 .AutoSize = True,
                 .Font = New Font("Segoe UI", 9, FontStyle.Bold),
                 .ForeColor = stColor
@@ -335,10 +340,13 @@ Public Class DashboardForm
 
     ' --- LAYOUT & EVENTS ---
     Private Sub ApplyStudentLayout()
+        ' 1. HIDE SIDEBAR
         pnlSidebar.Visible = False
-        btnNavDashboard.Visible = True
 
-        btnNavUsers.Visible = False
+        ' 2. Hide Dashboard Graph elements not needed for Students
+        ' (Since pnlViewDashboard is hidden by ShowView("Tickets"), this is implicit, but good to be explicit)
+
+        ' 3. Configure Ticket View for Student
         btnExport.Visible = False
         btnDelete.Visible = False
         dgvTickets.Visible = False
@@ -346,6 +354,7 @@ Public Class DashboardForm
         btnAction.Text = "➕ New Concern"
         btnAction.BackColor = Color.DodgerBlue
 
+        ' 4. Add a "Log Out" button to Header since Sidebar is gone
         Dim btnLogoutTop As New Button
         btnLogoutTop.Text = "Log Out"
         btnLogoutTop.Size = New Size(90, 35)
@@ -358,12 +367,15 @@ Public Class DashboardForm
         AddHandler btnLogoutTop.Click, AddressOf btnNavLogout_Click
         pnlHeader.Controls.Add(btnLogoutTop)
 
+        ' Adjust Welcome Label Position so it doesn't hit the Logout button
         lblUser.Location = New Point(pnlHeader.Width - 350, 27)
     End Sub
 
     Private Sub ApplyAdminLayout()
+        ' Show Sidebar
         pnlSidebar.Visible = True
-        btnNavDashboard.Visible = True
+
+        ' Configure Ticket View for Admin
         btnExport.Visible = True
         btnDelete.Visible = True
         dgvTickets.Visible = True
@@ -407,36 +419,19 @@ Public Class DashboardForm
     End Function
 
     Private Function ShowReportDialog(ByRef category As String, ByRef priority As String, ByRef issue As String) As Boolean
-        ' INCREASED FORM SIZE: 500x500 for better spacing
-        Dim f As New Form With {.Width = 500, .Height = 500, .Text = "New Concern", .StartPosition = FormStartPosition.CenterParent, .FormBorderStyle = FormBorderStyle.FixedDialog, .MaximizeBox = False}
+        Dim f As New Form With {.Width = 400, .Height = 450, .Text = "New Concern", .StartPosition = FormStartPosition.CenterParent}
 
-        ' WIDER INPUTS: 440 width
-        Dim c1 As New ComboBox With {.Left = 20, .Top = 40, .Width = 440, .DropDownStyle = ComboBoxStyle.DropDownList, .Parent = f}
+        Dim c1 As New ComboBox With {.Left = 20, .Top = 40, .Width = 340, .DropDownStyle = ComboBoxStyle.DropDownList, .Parent = f}
         c1.Items.AddRange({"Hardware", "Software", "Network", "Other"})
         c1.SelectedIndex = 0
 
-        Dim c2 As New ComboBox With {.Left = 20, .Top = 100, .Width = 440, .DropDownStyle = ComboBoxStyle.DropDownList, .Parent = f}
+        Dim c2 As New ComboBox With {.Left = 20, .Top = 100, .Width = 340, .DropDownStyle = ComboBoxStyle.DropDownList, .Parent = f}
         c2.Items.AddRange({"Low", "Medium", "High"})
         c2.SelectedIndex = 1
 
-        Dim t1 As New TextBox With {.Left = 20, .Top = 160, .Width = 440, .Height = 150, .Multiline = True, .Parent = f}
+        Dim t1 As New TextBox With {.Left = 20, .Top = 160, .Width = 340, .Height = 120, .Multiline = True, .Parent = f}
 
-        ' NEW BUTTON LAYOUT: Submit (Right) and Cancel (Left of Submit)
-        Dim btnSubmit As New Button With {
-            .Text = "Submit",
-            .Left = 320, .Top = 350,
-            .Width = 140, .Height = 45,
-            .DialogResult = DialogResult.OK, .Parent = f,
-            .BackColor = Color.DodgerBlue, .ForeColor = Color.White, .FlatStyle = FlatStyle.Flat
-        }
-
-        Dim btnCancel As New Button With {
-            .Text = "Cancel",
-            .Left = 200, .Top = 350,
-            .Width = 110, .Height = 45,
-            .DialogResult = DialogResult.Cancel, .Parent = f,
-            .BackColor = Color.WhiteSmoke, .ForeColor = Color.DimGray, .FlatStyle = FlatStyle.Flat
-        }
+        Dim btn As New Button With {.Text = "Submit", .Left = 20, .Top = 320, .Width = 340, .Height = 45, .DialogResult = DialogResult.OK, .Parent = f, .BackColor = Color.DodgerBlue, .ForeColor = Color.White, .FlatStyle = FlatStyle.Flat}
 
         Dim l1 As New Label With {.Text = "Category", .Top = 20, .Left = 20}
         Dim l2 As New Label With {.Text = "Priority", .Top = 80, .Left = 20}
