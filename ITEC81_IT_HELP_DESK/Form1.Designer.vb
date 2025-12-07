@@ -25,9 +25,9 @@ Partial Class Form1
         txtPassword = New TextBox()
         btnLogin = New Button()
         pnlLoginBox = New Panel()
+        registerBtn = New Button()
         lblBrand = New Label()
         closeBtn = New PictureBox()
-        registerBtn = New Button()
         pnlLoginBox.SuspendLayout()
         CType(closeBtn, ComponentModel.ISupportInitialize).BeginInit()
         SuspendLayout()
@@ -114,6 +114,20 @@ Partial Class Form1
         pnlLoginBox.Size = New Size(343, 427)
         pnlLoginBox.TabIndex = 7
         ' 
+        ' registerBtn
+        ' 
+        registerBtn.BackColor = Color.DodgerBlue
+        registerBtn.FlatStyle = FlatStyle.Flat
+        registerBtn.Font = New Font("Segoe UI", 10.0F, FontStyle.Bold)
+        registerBtn.ForeColor = Color.White
+        registerBtn.Location = New Point(38, 341)
+        registerBtn.Margin = New Padding(3, 4, 3, 4)
+        registerBtn.Name = "registerBtn"
+        registerBtn.Size = New Size(269, 53)
+        registerBtn.TabIndex = 6
+        registerBtn.Text = "Register"
+        registerBtn.UseVisualStyleBackColor = False
+        ' 
         ' lblBrand
         ' 
         lblBrand.AutoSize = True
@@ -134,20 +148,6 @@ Partial Class Form1
         closeBtn.SizeMode = PictureBoxSizeMode.AutoSize
         closeBtn.TabIndex = 9
         closeBtn.TabStop = False
-        ' 
-        ' registerBtn
-        ' 
-        registerBtn.BackColor = Color.DodgerBlue
-        registerBtn.FlatStyle = FlatStyle.Flat
-        registerBtn.Font = New Font("Segoe UI", 10.0F, FontStyle.Bold)
-        registerBtn.ForeColor = Color.White
-        registerBtn.Location = New Point(38, 341)
-        registerBtn.Margin = New Padding(3, 4, 3, 4)
-        registerBtn.Name = "registerBtn"
-        registerBtn.Size = New Size(269, 53)
-        registerBtn.TabIndex = 6
-        registerBtn.Text = "Register"
-        registerBtn.UseVisualStyleBackColor = False
         ' 
         ' Form1
         ' 

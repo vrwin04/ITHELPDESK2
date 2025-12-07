@@ -47,4 +47,8 @@ Public Class Form1
     Private Sub close_click(sender As Object, e As EventArgs) Handles closeBtn.Click
         Me.Close()
     End Sub
+
+    Private Sub registerBtn_Click(sender As Object, e As EventArgs) Handles registerBtn.Click
+        frmRegister.Show()
+    End Sub
 End Class
