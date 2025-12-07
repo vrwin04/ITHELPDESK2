@@ -328,9 +328,9 @@ Public Class DashboardForm
             Dim issue As String = ""
             If ShowReportDialog(category, priority, issue) Then
                 Dim sql As String = "INSERT INTO tblTickets (SubmittedBy, Category, Priority, IssueSubject, Status, DateSubmitted) VALUES (?, ?, ?, ?, ?, ?)"
-                Dim params As New List(Of Object) From {Session.CurrentUserID, category, priority, issue, "Pending", DateTime.Now.ToString()}
+                Dim params As New List(Of Object) From {CurrentUserID, category, priority, issue, "Pending", DateTime.Now.ToString()}
 
-                If Session.Db.RunSql(sql, params) Then
+                If Db.RunSql(sql, params) Then
                     MessageBox.Show("Concern submitted successfully!")
                     LoadTickets()
                 End If

@@ -4,20 +4,17 @@ Public Class Form1
 
     ' --- APP STARTUP CHECK ---
     Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
-        ' This checks for the file AND the drivers immediately
-        If Not Session.VerifyDatabase() Then
-            Application.Exit()
-        End If
+
     End Sub
 
     ' --- LOGIN LOGIC ---
     Private Sub btnLogin_Click(sender As Object, e As EventArgs) Handles btnLogin.Click
-        Using conn As New OleDbConnection(Session.ConnectionString)
+        Using conn As New OleDbConnection(connString)
             Dim cmd As New OleDbCommand("SELECT UserID, Role FROM tblUsers WHERE [Username]=? AND [Password]=?", conn)
 
             ' Parameterized query
             cmd.Parameters.AddWithValue("?", txtUsername.Text)
-            cmd.Parameters.AddWithValue("?", Session.HashPassword(txtPassword.Text))
+            cmd.Parameters.AddWithValue("?", txtPassword.Text)
 
             Try
                 conn.Open()
@@ -25,9 +22,9 @@ Public Class Form1
 
                 If reader.Read() Then
                     ' Login Success
-                    Session.CurrentUserID = Convert.ToInt32(reader("UserID"))
-                    Session.CurrentUserRole = reader("Role").ToString()
-                    Session.CurrentUserName = txtUsername.Text
+                    CurrentUserID = Convert.ToInt32(reader("UserID"))
+                    CurrentUserRole = reader("Role").ToString()
+                    CurrentUserName = txtUsername.Text
 
                     MessageBox.Show("Login Successful!", "Welcome", MessageBoxButtons.OK, MessageBoxIcon.Information)
 
