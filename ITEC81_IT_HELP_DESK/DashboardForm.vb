@@ -161,7 +161,7 @@ Public Class DashboardForm
         End If
     End Sub
 
-    ' --- STUDENT UI RENDERER ---
+    ' --- STUDENT UI RENDERER (UPDATED HEIGHTS) ---
     Private Sub RenderStudentCards()
         flpHistory.Controls.Clear()
         flpHistory.SuspendLayout()
@@ -174,7 +174,7 @@ Public Class DashboardForm
         For Each row As DataRow In dtTickets.Rows
             ' Define color FIRST before creating the panel
             Dim status As String = row("Status").ToString()
-            Dim stColor As Color ' Renamed variable to avoid conflict with Color class
+            Dim stColor As Color
 
             If status = "Resolved" Then
                 stColor = Color.SeaGreen
@@ -184,10 +184,10 @@ Public Class DashboardForm
                 stColor = Color.Orange
             End If
 
-            ' Now create the panel using the variable
+            ' INCREASED HEIGHT: From 110 to 140 to allow full text visibility
             Dim pnl As New Panel With {
                 .Width = flpHistory.Width - 40,
-                .Height = 110,
+                .Height = 140,
                 .BackColor = Color.White,
                 .Margin = New Padding(0, 0, 0, 10),
                 .Padding = New Padding(15),
@@ -209,18 +209,20 @@ Public Class DashboardForm
             }
             pnl.Controls.Add(lblHead)
 
+            ' INCREASED DESCRIPTION HEIGHT: From 25 to 50
             Dim lblBody As New Label With {
                 .Text = row("IssueSubject").ToString(),
                 .Font = New Font("Segoe UI", 12, FontStyle.Bold),
                 .Location = New Point(20, 35),
-                .Size = New Size(pnl.Width - 40, 25),
+                .Size = New Size(pnl.Width - 40, 50),
                 .AutoEllipsis = True
             }
             pnl.Controls.Add(lblBody)
 
+            ' MOVED FOOTER DOWN: From Y=70 to Y=95
             Dim lblFoot As New Label With {
                 .Text = "Status: " & status.ToUpper(),
-                .Location = New Point(20, 70),
+                .Location = New Point(20, 95),
                 .AutoSize = True,
                 .Font = New Font("Segoe UI", 9, FontStyle.Bold),
                 .ForeColor = stColor
@@ -320,17 +322,14 @@ Public Class DashboardForm
         Dim idx As Integer = 0
 
         For Each kvp In CategoryCounts
-            ' Calculate dimensions using Singles then convert to Integer for drawing
             Dim rawHeight As Double = (kvp.Value / maxVal) * (h - 100) * AnimationProgress
             Dim barH As Integer = CInt(rawHeight)
 
             Dim x As Integer = spacing + idx * (barWidth + spacing)
             Dim y As Integer = h - 50 - barH
 
-            ' Fix: Convert numbers to Integer/Single for FillRectangle
             g.FillRectangle(Brushes.DodgerBlue, x, y, barWidth, barH)
 
-            ' Fix: Convert numbers to Single for DrawString
             g.DrawString(kvp.Value.ToString(), Me.Font, Brushes.Black, CSng(x + 20), CSng(y - 20))
             g.DrawString(kvp.Key, Me.Font, Brushes.DimGray, CSng(x), CSng(h - 40))
 
@@ -408,7 +407,6 @@ Public Class DashboardForm
         Dim t1 As New TextBox With {.Left = 20, .Top = 160, .Width = 340, .Height = 100, .Multiline = True, .Parent = f}
         Dim btn As New Button With {.Text = "Submit", .Left = 260, .Top = 280, .DialogResult = DialogResult.OK, .Parent = f}
 
-        ' Create labels separately and add them
         Dim l1 As New Label With {.Text = "Category", .Top = 20, .Left = 20}
         Dim l2 As New Label With {.Text = "Priority", .Top = 80, .Left = 20}
         Dim l3 As New Label With {.Text = "Description", .Top = 140, .Left = 20}

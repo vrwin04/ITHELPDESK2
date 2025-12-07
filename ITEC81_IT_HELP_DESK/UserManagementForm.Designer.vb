@@ -45,7 +45,7 @@ Partial Class UserManagementForm
         Me.btnDelete.ForeColor = System.Drawing.Color.White
         Me.btnDelete.Location = New System.Drawing.Point(12, 360)
         Me.btnDelete.Name = "btnDelete"
-        Me.btnDelete.Size = New System.Drawing.Size(150, 40)
+        Me.btnDelete.Size = New System.Drawing.Size(150, 45)
         Me.btnDelete.TabIndex = 1
         Me.btnDelete.Text = "Delete User"
         Me.btnDelete.UseVisualStyleBackColor = False
@@ -57,7 +57,7 @@ Partial Class UserManagementForm
         Me.btnEdit.ForeColor = System.Drawing.Color.White
         Me.btnEdit.Location = New System.Drawing.Point(170, 360)
         Me.btnEdit.Name = "btnEdit"
-        Me.btnEdit.Size = New System.Drawing.Size(150, 40)
+        Me.btnEdit.Size = New System.Drawing.Size(150, 45)
         Me.btnEdit.TabIndex = 2
         Me.btnEdit.Text = "Edit Role"
         Me.btnEdit.UseVisualStyleBackColor = False
@@ -67,7 +67,7 @@ Partial Class UserManagementForm
         Me.btnClose.FlatStyle = System.Windows.Forms.FlatStyle.Flat
         Me.btnClose.Location = New System.Drawing.Point(422, 360)
         Me.btnClose.Name = "btnClose"
-        Me.btnClose.Size = New System.Drawing.Size(150, 40)
+        Me.btnClose.Size = New System.Drawing.Size(150, 45)
         Me.btnClose.TabIndex = 3
         Me.btnClose.Text = "Close"
         Me.btnClose.UseVisualStyleBackColor = True
@@ -77,7 +77,7 @@ Partial Class UserManagementForm
         Me.AutoScaleDimensions = New System.Drawing.SizeF(7.0!, 15.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.BackColor = System.Drawing.Color.WhiteSmoke
-        Me.ClientSize = New System.Drawing.Size(584, 411)
+        Me.ClientSize = New System.Drawing.Size(584, 420)
         Me.Controls.Add(Me.btnClose)
         Me.Controls.Add(Me.btnEdit)
         Me.Controls.Add(Me.btnDelete)
