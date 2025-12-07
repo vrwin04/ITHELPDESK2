@@ -2,15 +2,21 @@
 
 Public Class Form1
 
-    ' --- EVENTS ---
+    ' --- APP STARTUP CHECK ---
+    Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        ' This checks for the file AND the drivers immediately
+        If Not Session.VerifyDatabase() Then
+            Application.Exit()
+        End If
+    End Sub
+
+    ' --- LOGIN LOGIC ---
     Private Sub btnLogin_Click(sender As Object, e As EventArgs) Handles btnLogin.Click
-        ' Use the global connection string from Session.vb
         Using conn As New OleDbConnection(Session.ConnectionString)
-            ' Query now checks for the hashed password
             Dim cmd As New OleDbCommand("SELECT UserID, Role FROM tblUsers WHERE Username=? AND [Password]=?", conn)
 
+            ' Parameterized query
             cmd.Parameters.AddWithValue("?", txtUsername.Text)
-            ' Hash the input password to match the database
             cmd.Parameters.AddWithValue("?", Session.HashPassword(txtPassword.Text))
 
             Try
@@ -18,20 +24,17 @@ Public Class Form1
                 Dim reader As OleDbDataReader = cmd.ExecuteReader()
 
                 If reader.Read() Then
-                    ' --- LOGIN SUCCESS ---
-                    ' Store user details in the global Session
+                    ' Login Success
                     Session.CurrentUserID = Convert.ToInt32(reader("UserID"))
                     Session.CurrentUserRole = reader("Role").ToString()
                     Session.CurrentUserName = txtUsername.Text
 
                     MessageBox.Show("Login Successful!", "Welcome", MessageBoxButtons.OK, MessageBoxIcon.Information)
 
-                    ' Open Dashboard
                     Dim dash As New DashboardForm()
                     dash.Show()
                     Me.Hide()
                 Else
-                    ' --- LOGIN FAILED ---
                     MessageBox.Show("Invalid Username or Password.", "Login Failed", MessageBoxButtons.OK, MessageBoxIcon.Error)
                 End If
             Catch ex As Exception
@@ -44,14 +47,7 @@ Public Class Form1
         Application.Exit()
     End Sub
 
-    ' Close the entire app if the user closes the login form
     Private Sub Form1_FormClosed(sender As Object, e As FormClosedEventArgs) Handles MyBase.FormClosed
         Application.Exit()
-    End Sub
-    Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
-        ' Use the smart checker from Session.vb
-        If Not Session.VerifyDatabase() Then
-            Application.Exit()
-        End If
     End Sub
 End Class
