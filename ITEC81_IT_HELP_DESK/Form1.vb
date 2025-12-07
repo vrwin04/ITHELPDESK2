@@ -48,4 +48,10 @@ Public Class Form1
     Private Sub Form1_FormClosed(sender As Object, e As FormClosedEventArgs) Handles MyBase.FormClosed
         Application.Exit()
     End Sub
+    Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        ' Use the smart checker from Session.vb
+        If Not Session.VerifyDatabase() Then
+            Application.Exit()
+        End If
+    End Sub
 End Class
