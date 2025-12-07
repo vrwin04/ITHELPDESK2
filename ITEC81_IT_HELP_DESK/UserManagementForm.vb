@@ -15,26 +15,33 @@ Public Class UserManagementForm
                 da.Fill(dt)
                 dgvUsers.DataSource = dt
             Catch ex As Exception
-                MessageBox.Show("Error: " & ex.Message)
+                MessageBox.Show("Error loading users: " & ex.Message)
             End Try
         End Using
     End Sub
 
     Private Sub btnDelete_Click(sender As Object, e As EventArgs) Handles btnDelete.Click
         If dgvUsers.CurrentRow Is Nothing Then Return
+
         Dim userID As Integer = Convert.ToInt32(dgvUsers.CurrentRow.Cells("UserID").Value)
+        Dim userName As String = dgvUsers.CurrentRow.Cells("Username").Value.ToString()
 
         If userID = Session.CurrentUserID Then
             MessageBox.Show("Cannot delete yourself.")
             Return
         End If
 
-        If MessageBox.Show("Delete user?", "Confirm", MessageBoxButtons.YesNo) = DialogResult.Yes Then
+        If MessageBox.Show("Delete user '" & userName & "'?", "Confirm", MessageBoxButtons.YesNo) = DialogResult.Yes Then
             Using conn As New OleDbConnection(Session.connString)
                 Dim cmd As New OleDbCommand("DELETE FROM tblUsers WHERE UserID=?", conn)
                 cmd.Parameters.AddWithValue("?", userID)
-                conn.Open()
-                cmd.ExecuteNonQuery()
+
+                Try
+                    conn.Open()
+                    cmd.ExecuteNonQuery()
+                Catch ex As Exception
+                    MessageBox.Show("Database Error: " & ex.Message)
+                End Try
             End Using
             LoadUsers()
         End If
@@ -42,6 +49,7 @@ Public Class UserManagementForm
 
     Private Sub btnEdit_Click(sender As Object, e As EventArgs) Handles btnEdit.Click
         If dgvUsers.CurrentRow Is Nothing Then Return
+
         Dim userID As Integer = Convert.ToInt32(dgvUsers.CurrentRow.Cells("UserID").Value)
         Dim currentRole As String = dgvUsers.CurrentRow.Cells("Role").Value.ToString()
         Dim newRole As String = If(currentRole = "Student", "Admin", "Student")
@@ -50,8 +58,14 @@ Public Class UserManagementForm
             Dim cmd As New OleDbCommand("UPDATE tblUsers SET Role=? WHERE UserID=?", conn)
             cmd.Parameters.AddWithValue("?", newRole)
             cmd.Parameters.AddWithValue("?", userID)
-            conn.Open()
-            cmd.ExecuteNonQuery()
+
+            Try
+                conn.Open()
+                cmd.ExecuteNonQuery()
+                MessageBox.Show($"User role updated to {newRole}")
+            Catch ex As Exception
+                MessageBox.Show("Update Error: " & ex.Message)
+            End Try
         End Using
         LoadUsers()
     End Sub
