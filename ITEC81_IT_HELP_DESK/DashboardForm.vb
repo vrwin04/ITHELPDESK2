@@ -17,6 +17,8 @@ Public Class DashboardForm
     Private Sub DashboardForm_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         Me.DoubleBuffered = True
 
+        lblUser.Text = "Welcome, " & Session.CurrentUserName
+
         ' Load initial data
         LoadTickets()
 
