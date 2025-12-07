@@ -13,7 +13,7 @@ Public Class Form1
     ' --- LOGIN LOGIC ---
     Private Sub btnLogin_Click(sender As Object, e As EventArgs) Handles btnLogin.Click
         Using conn As New OleDbConnection(Session.ConnectionString)
-            Dim cmd As New OleDbCommand("SELECT UserID, Role FROM tblUsers WHERE Username=? AND [Password]=?", conn)
+            Dim cmd As New OleDbCommand("SELECT UserID, Role FROM tblUsers WHERE [Username]=? AND [Password]=?", conn)
 
             ' Parameterized query
             cmd.Parameters.AddWithValue("?", txtUsername.Text)
