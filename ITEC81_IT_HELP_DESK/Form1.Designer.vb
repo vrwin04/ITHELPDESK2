@@ -53,7 +53,7 @@ Partial Class Form1
         Me.lblBrand.Name = "lblBrand"
         Me.lblBrand.Size = New System.Drawing.Size(180, 30)
         Me.lblBrand.TabIndex = 8
-        Me.lblBrand.Text = "HELPDESK PRO"
+        Me.lblBrand.Text = "HELPDESK FOR STUDENTS"
         '
         'lblTitle
         '
