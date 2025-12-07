@@ -47,4 +47,8 @@ Public Class Form1
     Private Sub Form1_FormClosed(sender As Object, e As FormClosedEventArgs) Handles MyBase.FormClosed
         Application.Exit()
     End Sub
+
+    Private Sub close_click(sender As Object, e As EventArgs) Handles closeBtn.Click
+        Me.Close()
+    End Sub
 End Class
