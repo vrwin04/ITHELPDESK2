@@ -24,10 +24,10 @@ Partial Class Form1
         lblPass = New Label()
         txtPassword = New TextBox()
         btnLogin = New Button()
-        btnExit = New Button()
         pnlLoginBox = New Panel()
         lblBrand = New Label()
         closeBtn = New PictureBox()
+        registerBtn = New Button()
         pnlLoginBox.SuspendLayout()
         CType(closeBtn, ComponentModel.ISupportInitialize).BeginInit()
         SuspendLayout()
@@ -98,23 +98,11 @@ Partial Class Form1
         btnLogin.Text = "Sign In"
         btnLogin.UseVisualStyleBackColor = False
         ' 
-        ' btnExit
-        ' 
-        btnExit.FlatStyle = FlatStyle.Flat
-        btnExit.ForeColor = Color.IndianRed
-        btnExit.Location = New Point(38, 347)
-        btnExit.Margin = New Padding(3, 4, 3, 4)
-        btnExit.Name = "btnExit"
-        btnExit.Size = New Size(269, 40)
-        btnExit.TabIndex = 6
-        btnExit.Text = "Exit System"
-        btnExit.UseVisualStyleBackColor = True
-        ' 
         ' pnlLoginBox
         ' 
         pnlLoginBox.BackColor = Color.White
+        pnlLoginBox.Controls.Add(registerBtn)
         pnlLoginBox.Controls.Add(lblTitle)
-        pnlLoginBox.Controls.Add(btnExit)
         pnlLoginBox.Controls.Add(lblUser)
         pnlLoginBox.Controls.Add(btnLogin)
         pnlLoginBox.Controls.Add(txtUsername)
@@ -146,6 +134,20 @@ Partial Class Form1
         closeBtn.SizeMode = PictureBoxSizeMode.AutoSize
         closeBtn.TabIndex = 9
         closeBtn.TabStop = False
+        ' 
+        ' registerBtn
+        ' 
+        registerBtn.BackColor = Color.DodgerBlue
+        registerBtn.FlatStyle = FlatStyle.Flat
+        registerBtn.Font = New Font("Segoe UI", 10.0F, FontStyle.Bold)
+        registerBtn.ForeColor = Color.White
+        registerBtn.Location = New Point(38, 341)
+        registerBtn.Margin = New Padding(3, 4, 3, 4)
+        registerBtn.Name = "registerBtn"
+        registerBtn.Size = New Size(269, 53)
+        registerBtn.TabIndex = 6
+        registerBtn.Text = "Register"
+        registerBtn.UseVisualStyleBackColor = False
         ' 
         ' Form1
         ' 
@@ -179,4 +181,6 @@ Partial Class Form1
     Friend WithEvents pnlLoginBox As System.Windows.Forms.Panel
     Friend WithEvents lblBrand As System.Windows.Forms.Label
     Friend WithEvents closeBtn As PictureBox
+    Friend WithEvents Button1 As Button
+    Friend WithEvents registerBtn As Button
 End Class
